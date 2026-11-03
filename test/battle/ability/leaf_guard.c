@@ -31,6 +31,33 @@ SINGLE_BATTLE_TEST("Leaf Guard prevents non-volatile status conditions in sun")
     }
 }
 
+SINGLE_BATTLE_TEST("Leaf Guard prevents critical hits in sun")
+{
+    GIVEN {
+        PLAYER(SPECIES_LEAFEON) { Ability(ABILITY_LEAF_GUARD); Speed(2); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(1); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SUNNY_DAY); MOVE(opponent, MOVE_SCRATCH, criticalHit: TRUE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SUNNY_DAY, player);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+        NOT MESSAGE("A critical hit!");
+    }
+}
+
+SINGLE_BATTLE_TEST("Leaf Guard prevents critical hits outside of sun")
+{
+    GIVEN {
+        PLAYER(SPECIES_LEAFEON) { Ability(ABILITY_LEAF_GUARD); }
+        OPPONENT(SPECIES_WOBBUFFET);
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_SCRATCH, criticalHit: TRUE); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
+        NOT MESSAGE("A critical hit!");
+    }
+}
+
 SINGLE_BATTLE_TEST("Leaf Guard doesn't prevent non-volatile status conditions if Cloud Nine/Air Lock is on the field")
 {
     enum Move move;

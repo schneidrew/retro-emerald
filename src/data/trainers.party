@@ -9733,12 +9733,13 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Ledian
-Level: 10
-Ability: ABILITY_MULTI_PUNCH
-Nature: Timid
+Delibird
+Level: 8
+Ability: ABILITY_HOLIDAY_WISH
+Nature: Jolly
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- MOVE_FOCUS_PUNCH
+- Water Pulse
+- scald
 
 === TRAINER_MAY_ROUTE_110_TREECKO ===
 Name: MAY

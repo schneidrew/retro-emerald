@@ -271,6 +271,13 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .aiRating = 8,
     },
 
+    [ABILITY_HOLIDAY_WISH] =
+    {
+        .name = _("Holiday Wish"),
+        .description = COMPOUND_STRING("Secondary effects always occur."),
+        .aiRating = 8,
+    },
+
     [ABILITY_SWIFT_SWIM] =
     {
         .name = _("Swift Swim"),

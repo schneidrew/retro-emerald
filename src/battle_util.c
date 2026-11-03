@@ -8033,7 +8033,10 @@ s32 CalcCritChanceStage(struct DamageContext *ctx)
             critChance = ARRAY_COUNT(sCriticalHitOdds) - 1;
     }
 
-    if (critChance != CRITICAL_HIT_BLOCKED && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR))
+        if (critChance != CRITICAL_HIT_BLOCKED
+         && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR
+            || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR
+                || ctx->abilities[ctx->battlerDef] == ABILITY_LEAF_GUARD))
     {
         // Record ability only if move had 100% chance to get a crit
         if (ctx->updateFlags)
@@ -8085,7 +8088,9 @@ s32 CalcCritChanceStageGen1(struct DamageContext *ctx)
     if (critChance > 255)
         critChance = 255;
 
-    if (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR)
+    if (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR
+     || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR
+        || ctx->abilities[ctx->battlerDef] == ABILITY_LEAF_GUARD)
     {
         if (ctx->updateFlags)
             RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
@@ -9725,6 +9730,9 @@ u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbilit
     bool8 hasSereneGrace = (battlerAbility == ABILITY_SERENE_GRACE);
     bool8 hasRainbow = (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_RAINBOW) != 0;
     u16 secondaryEffectChance = additionalEffect->chance;
+
+    if (battlerAbility == ABILITY_HOLIDAY_WISH && secondaryEffectChance > 0)
+        return 100;
 
     if (hasRainbow && hasSereneGrace && additionalEffect->moveEffect == MOVE_EFFECT_FLINCH)
         return secondaryEffectChance * 2;

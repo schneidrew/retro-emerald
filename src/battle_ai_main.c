@@ -6664,7 +6664,7 @@ static s32 AI_PredictSwitch(enum BattlerId battlerAtk, enum BattlerId battlerDef
     }
 
     // Take advantage of ability damage bonus
-    if ((ability == ABILITY_STAKEOUT || ability == ABILITY_ANALYTIC) && IsBattleMoveStatus(move))
+    if ((ability == ABILITY_STAKEOUT || ability == ABILITY_ANALYTIC || ability == ABILITY_RACER) && IsBattleMoveStatus(move))
         ADJUST_SCORE(BAD_EFFECT);
 
     // This must be last or the player can gauge whether the AI is predicting based on how long it thinks

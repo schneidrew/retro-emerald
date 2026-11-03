@@ -1221,6 +1221,19 @@ bool32 IsLastMonToMove(enum BattlerId battler)
     return TRUE;
 }
 
+static bool32 IsFirstMonToMove(enum BattlerId battler)
+{
+    u32 battlerTurnOrderNum = GetBattlerTurnOrderNum(battler);
+
+    for (u32 i = 0; i < battlerTurnOrderNum; i++)
+    {
+        enum BattlerId otherBattler = gBattlerByTurnOrder[i];
+        if (IsBattlerAlive(otherBattler) && gActionsByTurnOrder[i] == B_ACTION_USE_MOVE)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 static u32 GetAiTurnOrder(u8 *aiTurnOrder, enum BattlerId battler)
 {
     for (u32 i = 0; i < gBattlersCount; i++)
@@ -1256,6 +1269,13 @@ static bool32 Ai_AttackerMovesLast(enum BattlerId battlerAtk)
         return TRUE;
 
     return FALSE;
+}
+
+static bool32 Ai_AttackerMovesFirst(enum BattlerId battlerAtk)
+{
+    u8 aiTurnOrder[4] = {0};
+    AI_SetBattlerTurnOrder(aiTurnOrder);
+    return GetAiTurnOrder(aiTurnOrder, battlerAtk) == 0;
 }
 
 void PrepareStringBattleWithWait(enum StringID stringId, enum BattlerId battler)
@@ -6639,6 +6659,20 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
         else if (IsLastMonToMove(battlerAtk))
         {
             modifier = uq4_12_multiply(modifier, UQ_4_12(1.3));
+        }
+        break;
+    case ABILITY_RACER:
+        if (moveEffect == EFFECT_FUTURE_SIGHT)
+            break;
+
+        if (ctx->aiCalc)
+        {
+            if (Ai_AttackerMovesFirst(battlerAtk))
+               modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
+        }
+        else if (IsFirstMonToMove(battlerAtk))
+        {
+            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
         }
         break;
     case ABILITY_TOUGH_CLAWS:

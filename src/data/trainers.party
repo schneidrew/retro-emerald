@@ -9733,9 +9733,12 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Slakoth
-Level: 8
-IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+Ponyta
+Level: 12
+Ability: ABILITY_RACER
+Nature: Timid
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- MOVE_TACKLE
 
 === TRAINER_MAY_ROUTE_110_TREECKO ===
 Name: MAY

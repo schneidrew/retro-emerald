@@ -20,6 +20,25 @@ SINGLE_BATTLE_TEST("Analytic increases the power of moves by 30% if it's the las
     }
 }
 
+SINGLE_BATTLE_TEST("Racer increases the power of moves by 50% if it's the first one that uses its move", s16 damage)
+{
+    u32 speed;
+
+    PARAMETRIZE { speed = 3; }
+    PARAMETRIZE { speed = 1; }
+
+    GIVEN {
+        PLAYER(SPECIES_PONYTA) { Ability(ABILITY_RACER); Speed(speed); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SCRATCH); }
+    } SCENE {
+        HP_BAR(opponent, captureDamage: &results[i].damage);
+    } FINALLY {
+        EXPECT_MUL_EQ(results[1].damage, Q_4_12(1.5), results[0].damage);
+    }
+}
+
 DOUBLE_BATTLE_TEST("Analytic activates correctly with empty slot after fainting", s16 damage)
 {
     u32 speed;

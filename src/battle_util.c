@@ -3762,7 +3762,15 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                 }
                 break;
             case ABILITY_TRUANT:
-                gBattleMons[gBattlerAttacker].volatiles.truantCounter ^= 1;
+                if (gBattleMons[battler].volatiles.truantFirstTurn)
+                {
+                    gBattleMons[battler].volatiles.truantCounter = 0;
+                    gBattleMons[battler].volatiles.truantFirstTurn = FALSE;
+                }
+                else
+                {
+                    gBattleMons[battler].volatiles.truantCounter = RandomPercentage(RNG_TRUANT, 50);
+                }
                 break;
             case ABILITY_SLOW_START:
                 if (gBattleMons[battler].volatiles.slowStartTimer > 0 && --gBattleMons[battler].volatiles.slowStartTimer == 0)

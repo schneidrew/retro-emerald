@@ -3656,7 +3656,10 @@ static void UpdateSentMonFlags(enum BattlerId battler)
     if (GetBattlerAbility(battler) == ABILITY_TRUANT
      && gCurrentActionFuncId != B_ACTION_USE_MOVE
      && !gBattleMons[battler].volatiles.truantSwitchInHack)
+    {
         gBattleMons[battler].volatiles.truantCounter = 1;
+        gBattleMons[battler].volatiles.truantFirstTurn = TRUE;
+    }
     gBattleMons[battler].volatiles.truantSwitchInHack = 0;
 
     for (u32 i = 0; i < gBattlersCount; i++)

@@ -272,7 +272,15 @@ static enum CancelerResult CancelerTruant(struct BattleCalcValues *cv)
         CancelMultiTurnMoves(cv->battlerAtk);
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_LOAFING;
         gBattlerAbility = cv->battlerAtk;
-        gBattlescriptCurrInstr = BattleScript_TruantLoafingAround;
+        if (!IsBattlerAtMaxHp(cv->battlerAtk) && !gBattleMons[cv->battlerAtk].volatiles.healBlockTimer)
+        {
+            SetHealAmount(cv->battlerAtk, GetNonDynamaxMaxHP(cv->battlerAtk) / 8);
+            gBattlescriptCurrInstr = BattleScript_TruantLoafingAroundHeal;
+        }
+        else
+        {
+            gBattlescriptCurrInstr = BattleScript_TruantLoafingAround;
+        }
         gBattleStruct->moveResultFlags[cv->battlerDef] |= MOVE_RESULT_MISSED;
         return CANCELER_RESULT_FAILURE;
     }

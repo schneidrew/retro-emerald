@@ -214,6 +214,14 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .breakable = TRUE,
     },
 
+    [ABILITY_CELESTIAL_BODY] =
+    {
+        .name = _("Celestial Body"),
+        .description = COMPOUND_STRING("Sets Gravity; blocks Ground attacks."),
+        .aiRating = 7,
+        .breakable = TRUE,
+    },
+
     [ABILITY_EFFECT_SPORE] =
     {
         .name = _("Effect Spore"),

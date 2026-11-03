@@ -2031,6 +2031,27 @@ bool32 HasNoMonsToSwitch(enum BattlerId battler, u8 partyIdBattlerOn1, u8 partyI
     }
 }
 
+static void SetGravityFromCelestialBody(void)
+{
+    enum BattlerId battler;
+
+    gFieldStatuses |= STATUS_FIELD_GRAVITY;
+    gFieldTimers.gravityTimer = 5;
+    for (battler = 0; battler < gBattlersCount; battler++)
+    {
+        if (gBattleMons[battler].volatiles.semiInvulnerable == STATE_ON_AIR
+         || gBattleMons[battler].volatiles.semiInvulnerable == STATE_SKY_DROP_ATTACKER
+         || gBattleMons[battler].volatiles.semiInvulnerable == STATE_SKY_DROP_TARGET
+         || gBattleMons[battler].volatiles.magnetRiseTimer > 0
+         || gBattleMons[battler].volatiles.telekinesis)
+        {
+            gBattleMons[battler].volatiles.semiInvulnerable = STATE_NONE;
+            gBattleMons[battler].volatiles.magnetRiseTimer = 0;
+            gBattleMons[battler].volatiles.telekinesis = FALSE;
+        }
+    }
+}
+
 static bool32 TryChangeWeatherWithAbility(enum BattlerId battler, u32 battleWeather, enum Ability ability)
 {
     switch (TryChangeBattleWeather(battler, battleWeather, ability))
@@ -3341,6 +3362,14 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
             {
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_SWITCHIN_SCREENCLEANER;
                 BattleScriptCall(BattleScript_SwitchInAbilityMsg);
+                effect++;
+            }
+            break;
+        case ABILITY_CELESTIAL_BODY:
+            if (shouldAbilityTrigger && !(gFieldStatuses & STATUS_FIELD_GRAVITY))
+            {
+                SetGravityFromCelestialBody();
+                BattleScriptCall(BattleScript_CelestialBodyActivates);
                 effect++;
             }
             break;
@@ -8281,12 +8310,13 @@ static inline uq4_12_t CalcTypeEffectivenessMultiplierInternal(struct DamageCont
             modifier = UQ_4_12(0.0);
     }
     else if (ctx->moveType == TYPE_GROUND
-        && !IsBattlerGroundedInverseCheck(ctx->battlerDef, ctx->abilities[ctx->battlerDef], ctx->holdEffects[ctx->battlerDef], INVERSE_BATTLE, ctx->isAnticipation)
+        && (ctx->abilities[ctx->battlerDef] == ABILITY_CELESTIAL_BODY
+         || !IsBattlerGroundedInverseCheck(ctx->battlerDef, ctx->abilities[ctx->battlerDef], ctx->holdEffects[ctx->battlerDef], INVERSE_BATTLE, ctx->isAnticipation))
         && !(MoveIgnoresTypeIfFlyingAndUngrounded(ctx->move))
         && !(ctx->holdEffects[ctx->battlerDef] == HOLD_EFFECT_RING_TARGET && IS_BATTLER_OF_TYPE(ctx->battlerDef, TYPE_FLYING) && !IsBattlerUngroundedByAbilityItemOrEffect(ctx->battlerDef, ctx->abilities[ctx->battlerDef], ctx->holdEffects[ctx->battlerDef])))
     {
         modifier = UQ_4_12(0.0);
-        if (ctx->updateFlags && (ctx->abilities[ctx->battlerDef] == ABILITY_LEVITATE || ctx->abilities[ctx->battlerDef] == ABILITY_EELEVATE))
+        if (ctx->updateFlags && (ctx->abilities[ctx->battlerDef] == ABILITY_LEVITATE || ctx->abilities[ctx->battlerDef] == ABILITY_EELEVATE || ctx->abilities[ctx->battlerDef] == ABILITY_CELESTIAL_BODY))
         {
             gBattleStruct->moveResultFlags[ctx->battlerDef] |= (MOVE_RESULT_MISSED | MOVE_RESULT_DOESNT_AFFECT_FOE);
             gLastUsedAbility = ctx->abilities[ctx->battlerDef];
@@ -8400,9 +8430,9 @@ uq4_12_t CalcPartyMonTypeEffectivenessMultiplier(enum Move move, enum Species sp
         if (GetSpeciesType(speciesDef, 1) != GetSpeciesType(speciesDef, 0))
             MulByTypeEffectiveness(&ctx, &modifier, GetSpeciesType(speciesDef, 1));
 
-        if (ctx.moveType == TYPE_GROUND
-         && (abilityDef == ABILITY_LEVITATE || abilityDef == ABILITY_EELEVATE)
-         && !(gFieldStatuses & STATUS_FIELD_GRAVITY))
+                if (ctx.moveType == TYPE_GROUND
+                 && (abilityDef == ABILITY_CELESTIAL_BODY
+                    || ((abilityDef == ABILITY_LEVITATE || abilityDef == ABILITY_EELEVATE) && !(gFieldStatuses & STATUS_FIELD_GRAVITY))))
             modifier = UQ_4_12(0.0);
         if (abilityDef == ABILITY_WONDER_GUARD && modifier <= UQ_4_12(1.0) && GetMovePower(move) != 0)
             modifier = UQ_4_12(0.0);

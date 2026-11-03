@@ -1385,6 +1385,12 @@ BattleScript_MiracleEyeSet:
 	setvolatile BS_TARGET, VOLATILE_MIRACLE_EYE
 	goto BattleScript_IdentifiedFoe
 
+BattleScript_CelestialBodyActivates::
+	call BattleScript_AbilityPopUp
+	printstring STRINGID_GRAVITYINTENSIFIED
+	waitmessage B_WAIT_TIME_LONG
+	return
+
 BattleScript_EffectGravity::
 	call BattleScript_EffectGravityInternal
 	goto BattleScript_MoveEnd

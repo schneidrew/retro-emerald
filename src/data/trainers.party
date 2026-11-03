@@ -9733,12 +9733,12 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Ponyta
-Level: 12
-Ability: ABILITY_RACER
+Ledian
+Level: 10
+Ability: ABILITY_MULTI_PUNCH
 Nature: Timid
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- MOVE_TACKLE
+- MOVE_FOCUS_PUNCH
 
 === TRAINER_MAY_ROUTE_110_TREECKO ===
 Name: MAY

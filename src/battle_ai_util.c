@@ -781,6 +781,15 @@ static inline void CalcDynamicMoveDamage(struct DamageContext *ctx, struct Simul
             random *= RandomUniform(RNG_AI_DMG_ROLL_RANDOM, 2, 5);
         }
     }
+    else if (ctx->abilities[ctx->battlerAtk] == ABILITY_MULTI_PUNCH
+            && strikeCount <= 1
+          && IsPunchingMove(ctx->move))
+    {
+        median *= 2;
+        minimum *= 2;
+        maximum *= 2;
+        random *= 2;
+    }
     else if (ctx->abilities[ctx->battlerAtk] == ABILITY_PARENTAL_BOND
           && strikeCount == 0
           && !AI_IsDoubleSpreadMove(ctx->battlerAtk, ctx->move))

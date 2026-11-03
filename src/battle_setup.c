@@ -1007,10 +1007,33 @@ void ChooseStarter(void)
 static void CB2_GiveStarter(void)
 {
     u16 starterMon;
+    u8 abilityNum;
+    u8 i, selected;
+    u32 ivs;
+    struct Pokemon *mon;
+    enum Stat statOrder[NUM_STATS] = { STAT_HP, STAT_ATK, STAT_DEF, STAT_SPEED, STAT_SPATK, STAT_SPDEF };
+    enum Stat tempStat;
 
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
     starterMon = GetStarterPokemon(gSpecialVar_Result);
     ScriptGiveMon(starterMon, 5, ITEM_NONE);
+    if (starterMon == SPECIES_TREECKO || starterMon == SPECIES_TORCHIC || starterMon == SPECIES_MUDKIP)
+    {
+        mon = &gParties[B_TRAINER_PLAYER][0];
+        abilityNum = 2;
+        SetMonData(mon, MON_DATA_ABILITY_NUM, &abilityNum);
+        ivs = GetMonData(mon, MON_DATA_IVS);
+        for (i = 0; i < 3; i++)
+        {
+            selected = i + Random() % (NUM_STATS - i);
+            tempStat = statOrder[i];
+            statOrder[i] = statOrder[selected];
+            statOrder[selected] = tempStat;
+            ivs |= MAX_IV_MASK << (statOrder[i] * 5);
+        }
+        SetMonData(mon, MON_DATA_IVS, &ivs);
+        CalculateMonStats(mon);
+    }
     ResetTasks();
     PlayBattleBGM();
     SetMainCallback2(CB2_StartFirstBattle);

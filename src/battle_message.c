@@ -2728,6 +2728,9 @@ void BufferStringBattle(enum StringID stringID, enum BattlerId battler)
             StringCopy(gBattleTextBuff3, GetMoveName(gBattleMsgDataPtr->currentMove));
         stringPtr = sText_AttackerUsedX;
         break;
+    case STRINGID_BASSQUAKETRIGGERED:
+        stringPtr = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} triggered an Earthquake!");
+        break;
     case STRINGID_BATTLEEND: // battle end
         if (gBattleTextBuff1[0] & B_OUTCOME_LINK_BATTLE_RAN)
         {

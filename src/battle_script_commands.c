@@ -1033,7 +1033,15 @@ static void Cmd_printattackstring(void)
     if (gBattleControllerExecFlags)
         return;
 
-    PrepareStringBattle(STRINGID_USEDMOVE, gBattlerAttacker);
+    if (gSpecialStatuses[gBattlerAttacker].bassQuakeTriggered)
+    {
+        gSpecialStatuses[gBattlerAttacker].bassQuakeTriggered = FALSE;
+        PrepareStringBattle(STRINGID_BASSQUAKETRIGGERED, gBattlerAttacker);
+    }
+    else
+    {
+        PrepareStringBattle(STRINGID_USEDMOVE, gBattlerAttacker);
+    }
     gBattleCommunication[MSG_DISPLAY] = MSG_DISPLAY_CONTINUE;
     if (gBattleMoveEffects[GetMoveEffect(gCurrentMove)].twoTurnEffect
      && !gBattleMons[gBattlerAttacker].volatiles.multipleTurns)

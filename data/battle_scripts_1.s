@@ -5174,6 +5174,12 @@ BattleScript_DancerActivates::
 	waitmessage B_WAIT_TIME_SHORT
 	jumptocalledmove TRUE
 
+BattleScript_BassQuakeActivates::
+	flushtextbox
+	call BattleScript_AbilityPopUp
+	waitmessage B_WAIT_TIME_SHORT
+	jumptocalledmove TRUE
+
 BattleScript_SynchronizeActivates::
 	waitstate
 	call BattleScript_AbilityPopUp

@@ -5199,6 +5199,33 @@ static bool32 ShouldSetStompingTantrumTimer(void)
     return numNotAffectedTargets == gBattleStruct->numSpreadTargets;
 }
 
+static enum MoveEndResult MoveEndBassQuake(struct BattleCalcValues *cv)
+{
+    enum BattlerId battler = cv->battlerAtk;
+
+    if (gBattleStruct->battlerState[battler].bassQuakeMoveSucceeded
+     && cv->abilities[battler] == ABILITY_BASS_QUAKE
+     && IsBattlerAlive(battler))
+    {
+        gBattleStruct->battlerState[battler].bassQuakeMoveSucceeded = FALSE;
+        gBattlerAttacker = battler;
+        gBattlerAbility = battler;
+        gLastUsedAbility = ABILITY_BASS_QUAKE;
+        RecordAbilityBattle(battler, ABILITY_BASS_QUAKE);
+        gCalledMove = MOVE_EARTHQUAKE;
+        gBattleStruct->moveTarget[battler] = GetBattleMoveTarget(MOVE_EARTHQUAKE, TARGET_NONE);
+        gBattlerTarget = gBattleStruct->moveTarget[battler];
+        gSpecialStatuses[battler].backUpTarget = gBattleStruct->moveTarget[battler] + 1;
+        gSpecialStatuses[battler].bassQuakeTriggered = TRUE;
+        BattleScriptExecute(BattleScript_BassQuakeActivates);
+        gBattleScripting.moveendState++;
+        return MOVEEND_RESULT_RUN_SCRIPT;
+    }
+
+    gBattleScripting.moveendState++;
+    return MOVEEND_RESULT_CONTINUE;
+}
+
 static enum MoveEndResult MoveEndClearBits(struct BattleCalcValues *cv)
 {
     // go to next Bouncer or original attacker if possible
@@ -5213,7 +5240,16 @@ static enum MoveEndResult MoveEndClearBits(struct BattleCalcValues *cv)
         return MOVEEND_RESULT_RUN_SCRIPT;
     }
 
+    gBattleStruct->battlerState[cv->battlerAtk].bassQuakeMoveSucceeded = FALSE;
+
     ValidateBattlers();
+
+    gBattleStruct->battlerState[cv->battlerAtk].bassQuakeMoveSucceeded =
+        cv->abilities[cv->battlerAtk] == ABILITY_BASS_QUAKE
+        && IsSoundMove(cv->move)
+        && IsBattlerAlive(cv->battlerAtk)
+        && gBattleStruct->battlerState[cv->battlerAtk].originalBattlerPartyId == PARTY_SIZE
+        && !ShouldSetStompingTantrumTimer();
 
     enum Move originallyUsedMove = GetOriginallyUsedMove(gChosenMove);
     enum Type moveType = GetBattleMoveType(cv->move);
@@ -5379,6 +5415,7 @@ static enum MoveEndResult (*const sMoveEndHandlers[])(struct BattleCalcValues *c
     [MOVEEND_ITEM_ON_STAT_CHANGE] = MoveEndItemOnStatChange,
     [MOVEEND_SEND_OUT_REPLACEMENTS] = MoveEndSendOutReplacements,
     [MOVEEND_CLEAR_BITS] = MoveEndClearBits,
+    [MOVEEND_BASS_QUAKE] = MoveEndBassQuake,
     [MOVEEND_DANCER] = MoveEndDancer,
     [MOVEEND_PURSUIT_NEXT_ACTION] = MoveEndPursuitNextAction,
 };

@@ -1047,7 +1047,7 @@ bool8 UpdateRepelCounter(void)
         if (!isLure)
         {
             VarSet(VAR_REPEL_STEP_COUNT, steps);
-            if (steps == 0)
+            if (steps == 0 && !FlagGet(FLAG_SYS_INFINITE_REPEL_ACTIVE))
             {
                 ScriptContext_SetupScript(EventScript_SprayWoreOff);
                 return TRUE;
@@ -1071,7 +1071,7 @@ bool8 IsWildLevelAllowedByRepel(u8 wildLevel)
 {
     u8 i;
 
-    if (!REPEL_STEP_COUNT)
+    if (!REPEL_STEP_COUNT && !FlagGet(FLAG_SYS_INFINITE_REPEL_ACTIVE))
         return TRUE;
 
     for (i = 0; i < PARTY_SIZE; i++)

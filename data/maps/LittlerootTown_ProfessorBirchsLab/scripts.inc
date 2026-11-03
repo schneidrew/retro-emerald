@@ -113,12 +113,18 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GiveStarterEvent::
 	waitfanfare
 	msgbox LittlerootTown_ProfessorBirchsLab_Text_WhyNotGiveNicknameToMon, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter
-	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_GoSeeRival
+	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_GiveInfiniteCandy
 	end
 
 LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter::
 	setvar VAR_0x8004, 0
 	call Common_EventScript_NameReceivedPartyMon
+	goto LittlerootTown_ProfessorBirchsLab_EventScript_GiveInfiniteCandy
+	end
+
+LittlerootTown_ProfessorBirchsLab_EventScript_GiveInfiniteCandy::
+	giveitem ITEM_INFINITE_CANDY, 1
+	giveitem ITEM_INFINITE_REPEL, 1
 	goto LittlerootTown_ProfessorBirchsLab_EventScript_GoSeeRival
 	end
 

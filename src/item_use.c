@@ -93,6 +93,8 @@ static const u8 sText_BootedUpHM[] = _("Booted up an HM.");
 static const u8 sText_TMHMContainedVar1[] = _("It contained\n{STR_VAR_1}.\pTeach {STR_VAR_1}\nto a POKéMON?");
 static const u8 sText_UsedVar2WildLured[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be lured.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_UsedVar2WildRepelled[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be repelled.{PAUSE_UNTIL_PRESS}");
+static const u8 sText_InfiniteRepelTurnedOn[] = _("Infinite Repel is now\nactive.{PAUSE_UNTIL_PRESS}");
+static const u8 sText_InfiniteRepelTurnedOff[] = _("Infinite Repel was\nturned off.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFluteCatchy[] = _("Played the POKé FLUTE.\pNow, that's a catchy tune!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFlute[] = _("Played the POKé FLUTE.");
 static const u8 sText_PokeFluteAwakenedMon[] = _("The POKé FLUTE awakened sleeping\nPOKéMON.{PAUSE_UNTIL_PRESS}");
@@ -971,6 +973,27 @@ void ItemUseOutOfBattle_Repel(u8 taskId)
         DisplayItemMessage(taskId, FONT_NORMAL, gText_RepelEffectsLingered, CloseItemMessage);
     else
         DisplayItemMessageInBattlePyramid(taskId, gText_RepelEffectsLingered, Task_CloseBattlePyramidBagMessage);
+}
+
+void ItemUseOutOfBattle_InfiniteRepel(u8 taskId)
+{
+    const u8 *message;
+
+    if (FlagGet(FLAG_SYS_INFINITE_REPEL_ACTIVE))
+    {
+        FlagClear(FLAG_SYS_INFINITE_REPEL_ACTIVE);
+        message = sText_InfiniteRepelTurnedOff;
+    }
+    else
+    {
+        FlagSet(FLAG_SYS_INFINITE_REPEL_ACTIVE);
+        message = sText_InfiniteRepelTurnedOn;
+    }
+
+    if (gTasks[taskId].tUsingRegisteredKeyItem)
+        DisplayItemMessageOnField(taskId, message, Task_CloseCantUseKeyItemMessage);
+    else
+        DisplayItemMessage(taskId, FONT_NORMAL, message, CloseItemMessage);
 }
 
 static void Task_StartUseRepel(u8 taskId)

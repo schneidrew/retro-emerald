@@ -9733,12 +9733,12 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Whismur @ITEM_CHOICE_SPECS
+Whismur 
 Level: 8
 Ability: ABILITY_BASS_QUAKE
 Nature: Jolly
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Howl
+- SING
 
 === TRAINER_MAY_ROUTE_110_TREECKO ===
 Name: MAY

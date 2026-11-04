@@ -4429,6 +4429,27 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                 effect++;
             }
             break;
+        case ABILITY_PESTILENCE:
+            if ((IsPowderMove(gCurrentMove) || IsSeedMove(gCurrentMove))
+             && gBattlerAttacker != gBattlerTarget
+             && IsBattlerAlive(gBattlerTarget)
+             && !gBattleStruct->unableToUseMove
+             && !(gBattleStruct->moveResultFlags[gBattlerTarget] & MOVE_RESULT_NO_EFFECT)
+             && !gBattleMons[gBattlerTarget].volatiles.wrapped
+             && (IsBattleMoveStatus(gCurrentMove) || IsBattlerTurnDamaged(gBattlerTarget, EXCLUDING_SUBSTITUTES))
+             && !IsMoveEffectBlockedByTarget(GetBattlerAbility(gBattlerTarget)))
+            {
+                SetWrapTurns(gBattlerTarget, GetBattlerHoldEffect(gBattlerAttacker));
+                gBattleMons[gBattlerTarget].volatiles.wrapped = TRUE;
+                gBattleMons[gBattlerTarget].volatiles.wrappedMove = MOVE_INFESTATION;
+                gBattleMons[gBattlerTarget].volatiles.wrappedBy = gBattlerAttacker;
+                gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_WRAPPED_INFESTATION;
+                gEffectBattler = gBattlerTarget;
+                gBattleScripting.battler = gBattlerAttacker;
+                BattleScriptCall(BattleScript_PestilenceActivates);
+                effect++;
+            }
+            break;
         case ABILITY_TOXIC_CHAIN:
             if (gBattleStruct->toxicChainPriority)
             {

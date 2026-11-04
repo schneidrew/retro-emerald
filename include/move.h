@@ -154,7 +154,8 @@ struct MoveInfo
     bool32 alwaysHitsOnSameType:1; // Always hits if user is of same type as move
     bool32 noAffectOnSameTypeTarget:1; // Fails if target is of same type as move
     bool32 accDecreaseIfUserNotSameType:1; // Accuracy is increased by 10% if user is of same type as move
-    bool32 padding1:15;
+    bool32 seedMove:1;
+    bool32 padding1:14;
     // end of word
 
     // Ban flags
@@ -404,6 +405,11 @@ static inline bool32 IsBallisticMove(enum Move moveId)
 static inline bool32 IsPowderMove(enum Move moveId)
 {
     return gMovesInfo[SanitizeMoveId(moveId)].powderMove;
+}
+
+static inline bool32 IsSeedMove(enum Move moveId)
+{
+    return gMovesInfo[SanitizeMoveId(moveId)].seedMove;
 }
 
 static inline bool32 IsDanceMove(enum Move moveId)

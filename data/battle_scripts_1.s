@@ -5157,6 +5157,13 @@ BattleScript_AbilityStatusEffect::
 	setnonvolatilestatus TRIGGER_ON_ABILITY
 	return
 
+BattleScript_PestilenceActivates::
+	waitstate
+	call BattleScript_AbilityPopUp
+	printfromtable gWrappedStringIds
+	waitmessage B_WAIT_TIME_LONG
+	return
+
 BattleScript_BattleBondActivatesOnMoveEndAttacker::
 	pause 5
 	copybyte gBattlerAbility, gBattlerAttacker

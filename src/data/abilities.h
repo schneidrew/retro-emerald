@@ -1163,6 +1163,13 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .aiRating = 4,
     },
 
+    [ABILITY_PESTILENCE] =
+    {
+        .name = _("Pestilence"),
+        .description = COMPOUND_STRING("Powder and seed moves infest."),
+        .aiRating = 4,
+    },
+
     [ABILITY_REGENERATOR] =
     {
         .name = _("Regenerator"),

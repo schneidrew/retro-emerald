@@ -27,7 +27,7 @@ SINGLE_BATTLE_TEST("Bass Quake does not activate if the sound move misses")
     GIVEN {
         ASSUME(IsSoundMove(MOVE_ECHOED_VOICE));
         PLAYER(SPECIES_WHISMUR) { Ability(ABILITY_BASS_QUAKE); Moves(MOVE_ECHOED_VOICE); Speed(2); }
-        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); Speed(1); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); Item(ITEM_BRIGHT_POWDER); Speed(1); }
     } WHEN {
         TURN { MOVE(player, MOVE_ECHOED_VOICE, hit: FALSE); }
     } SCENE {
@@ -62,10 +62,10 @@ DOUBLE_BATTLE_TEST("Bass Quake does not activate when another battler uses a sou
         ASSUME(IsSoundMove(MOVE_ECHOED_VOICE));
         PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_ECHOED_VOICE); Speed(5); }
         PLAYER(SPECIES_WHISMUR) { Ability(ABILITY_BASS_QUAKE); Moves(MOVE_CELEBRATE); Speed(4); }
-        OPPONENT(SPECIES_WOBBUFFET);
-        OPPONENT(SPECIES_WOBBUFFET);
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(2); }
+        OPPONENT(SPECIES_WOBBUFFET) { Speed(1); }
     } WHEN {
-        TURN { MOVE(playerLeft, MOVE_ECHOED_VOICE); MOVE(playerRight, MOVE_CELEBRATE); }
+        TURN { MOVE(playerLeft, MOVE_ECHOED_VOICE, target: opponentLeft); MOVE(playerRight, MOVE_CELEBRATE); }
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_ECHOED_VOICE, playerLeft);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_CELEBRATE, playerRight);

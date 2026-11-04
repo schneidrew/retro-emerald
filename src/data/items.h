@@ -2232,8 +2232,8 @@ const struct ItemInfo gItemsInfo[] =
         .price = 0,
         .description = COMPOUND_STRING(
             "Repels weak wild\n"
-            "Pokémon indefinitely.\n"
-            "Use to toggle on/off."),
+            "Pokémon forever.\n"
+            "Use to toggle."),
         .importance = 1,
         .pocket = POCKET_KEY_ITEMS,
         .sortType = ITEM_TYPE_FIELD_USE,

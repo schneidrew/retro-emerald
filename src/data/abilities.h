@@ -281,7 +281,7 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
     [ABILITY_BASS_QUAKE] =
     {
         .name = _("Bass Quake"),
-        .description = COMPOUND_STRING("Causes an Earthquake after sound moves."),
+        .description = COMPOUND_STRING("Sound moves trigger Earthquake."),
         .aiRating = 6,
     },
 

@@ -904,6 +904,7 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_S]                                    = COMPOUND_STRING("s"),
     [STRINGID_LOSTSOMEOFITSHP]                      = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} lost some of its HP!"),
     [STRINGID_BELCHCANTUSE]                         = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} hasn't eaten any held Berries, so it can't possibly belch!\p"),
+    [STRINGID_BASSQUAKETRIGGERED]                   = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} triggered an Earthquake!"),
 };
 
 const u16 gTrainerUsedItemStringIds[] =
@@ -2727,9 +2728,6 @@ void BufferStringBattle(enum StringID stringID, enum BattlerId battler)
         else
             StringCopy(gBattleTextBuff3, GetMoveName(gBattleMsgDataPtr->currentMove));
         stringPtr = sText_AttackerUsedX;
-        break;
-    case STRINGID_BASSQUAKETRIGGERED:
-        stringPtr = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} triggered an Earthquake!");
         break;
     case STRINGID_BATTLEEND: // battle end
         if (gBattleTextBuff1[0] & B_OUTCOME_LINK_BATTLE_RAN)

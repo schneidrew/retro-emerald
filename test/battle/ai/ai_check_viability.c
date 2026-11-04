@@ -331,8 +331,8 @@ AI_SINGLE_BATTLE_TEST("AI chooses moves that cure inactive party members")
     u32 status, config;
     enum Ability ability;
 
-    PARAMETRIZE { status = STATUS1_TOXIC_POISON; ability = ABILITY_SCRAPPY; }
-    PARAMETRIZE { status = STATUS1_NONE;         ability = ABILITY_SCRAPPY; }
+    PARAMETRIZE { status = STATUS1_TOXIC_POISON; ability = ABILITY_BASS_QUAKE; }
+    PARAMETRIZE { status = STATUS1_NONE;         ability = ABILITY_BASS_QUAKE; }
     PARAMETRIZE { status = STATUS1_TOXIC_POISON; ability = ABILITY_SOUNDPROOF; config = GEN_4; }
     PARAMETRIZE { status = STATUS1_TOXIC_POISON; ability = ABILITY_SOUNDPROOF; config = GEN_5; }
 

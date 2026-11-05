@@ -1177,6 +1177,13 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .aiRating = 6,
     },
 
+    [ABILITY_SOPRANO] =
+    {
+        .name = _("Soprano"),
+        .description = COMPOUND_STRING("Sound moves are stronger and never miss."),
+        .aiRating = 7,
+    },
+
     [ABILITY_REGENERATOR] =
     {
         .name = _("Regenerator"),

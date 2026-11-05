@@ -6771,6 +6771,10 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
         if (IsSlicingMove(move))
            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
         break;
+    case ABILITY_SOPRANO:
+        if (IsSoundMove(move))
+            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
+        break;
     case ABILITY_SUPREME_OVERLORD:
         modifier = uq4_12_multiply(modifier, GetSupremeOverlordModifier(battlerAtk));
         break;
@@ -10521,6 +10525,15 @@ bool32 CanMoveSkipAccuracyCalc(struct BattleCalcValues *cv, u32 weather, enum Re
     {
         effect = TRUE;
         ability = ABILITY_NO_GUARD;
+        abilityBattler = battlerAtk;
+    }
+    else if (cv->abilities[battlerAtk] == ABILITY_SOPRANO
+          && IsSoundMove(cv->move)
+          && gBattleMons[battlerDef].volatiles.semiInvulnerable != STATE_COMMANDER
+          && !shouldAvoidSkyDropBattlers)
+    {
+        effect = TRUE;
+        ability = ABILITY_SOPRANO;
         abilityBattler = battlerAtk;
     }
     else if (cv->abilities[battlerDef] == ABILITY_NO_GUARD && !shouldAvoidSkyDropBattlers)

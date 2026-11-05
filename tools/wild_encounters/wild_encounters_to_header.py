@@ -122,15 +122,15 @@ class WildEncounterAssembler:
                     macro_total_name = macro_base + group_name_mapping[-1] + "_TOTAL"
                     self.WriteLine()
     
-    def WriteMonInfos(self, name, mons, encounter_rate):
+    def WriteMonInfos(self, name, mons, encounter_rate, encounter_weights=None):
         info_name = name + "Info"
         self.WriteLine(f"const struct WildPokemon {name}[] =")
         self.WriteLine("{")
-        for mon in mons:
+        for i, mon in enumerate(mons):
             species = mon["species"]
             min_level = 2 if "min_level" not in mon else mon["min_level"]
             max_level = 100 if "max_level" not in mon else mon["max_level"]
-            encounter_weight = mon.get("encounter_weight", 0)
+            encounter_weight = 0 if encounter_weights is None else encounter_weights[i]
             self.WriteLine(f"{{ {min_level}, {max_level}, {species}, {encounter_weight} }},", 1)
 
         self.WriteLine("};")
@@ -215,6 +215,10 @@ class WildEncounterAssembler:
             if "for_maps" in wild_encounter_group:
                 for_maps = wild_encounter_group["for_maps"]
             encounters = wild_encounter_group["encounters"]
+            encounter_rates = {
+                field["type"]: field.get("encounter_rates")
+                for field in wild_encounter_group.get("fields", [])
+            }
 
             for map_encounters in encounters:
                 map_group = "0"
@@ -256,7 +260,8 @@ class WildEncounterAssembler:
                     mons = mons_entry["mons"]
 
                     mon_array_name = base_label + "_" + mon_type.title().replace("_", "")
-                    self.WriteMonInfos(mon_array_name, mons, encounter_rate)
+                    encounter_weights = encounter_rates.get(mon_type) if mon_type == "fishing_mons" else None
+                    self.WriteMonInfos(mon_array_name, mons, encounter_rate, encounter_weights)
                     headers["data"][shared_label][time][mon_type] = mon_array_name + "Info"
                 self.WriteLine(f"#endif")
 

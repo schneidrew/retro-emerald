@@ -489,21 +489,27 @@ static u8 PickWildMonNature(enum Species species)
 
 static u8 ChooseWildMonLevelFromCap(void)
 {
+    u8 minLevel;
+    u8 maxLevel;
+
+    GetWildMonLevelRange(&minLevel, &maxLevel);
+
+    return minLevel + Random() % (maxLevel - minLevel + 1);
+}
+
+void GetWildMonLevelRange(u8 *minLevel, u8 *maxLevel)
+{
     u32 levelCap = GetCurrentLevelCap();
-    u32 minLevel;
-    u32 maxLevel;
 
     if (levelCap > MAX_LEVEL)
         levelCap = MAX_LEVEL;
 
-    minLevel = levelCap > 20 ? levelCap - 20 : MIN_WILD_LEVEL;
-    maxLevel = levelCap > 10 ? levelCap - 10 : MIN_WILD_LEVEL;
-    if (minLevel < MIN_WILD_LEVEL)
-        minLevel = MIN_WILD_LEVEL;
-    if (maxLevel < minLevel)
-        maxLevel = minLevel;
-
-    return minLevel + Random() % (maxLevel - minLevel + 1);
+    *minLevel = levelCap > 10 ? levelCap - 10 : MIN_WILD_LEVEL;
+    *maxLevel = levelCap > 5 ? levelCap - 5 : MIN_WILD_LEVEL;
+    if (*minLevel < MIN_WILD_LEVEL)
+        *minLevel = MIN_WILD_LEVEL;
+    if (*maxLevel < *minLevel)
+        *maxLevel = *minLevel;
 }
 
 static void CreateWildMonAtLevel(enum Species species, u8 level)

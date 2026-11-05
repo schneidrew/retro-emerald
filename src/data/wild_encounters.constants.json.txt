@@ -8,7 +8,10 @@
 ## for wild_encounter_group in wild_encounter_groups
 {% if wild_encounter_group.for_maps %}
 ## for wild_encounter_field in wild_encounter_group.fields
-{% if existsIn(wild_encounter_field, "groups") %}
+{% if not existsIn(wild_encounter_field, "groups") %}
+## for encounter_rate in wild_encounter_field.encounter_rates
+## endfor
+{% else %}
 ## for field_subgroup_key, field_subgroup_subarray in wild_encounter_field.groups
 {{ setVar("field_name", concat(concat(upper(wild_encounter_field.type), "_"), upper(field_subgroup_key))) }}
 ## for field_subgroup_index in field_subgroup_subarray
@@ -16,13 +19,7 @@
 #define NUM_{{ getVar("field_name") }}_ENCOUNTER_SLOTS ({{ length(field_subgroup_subarray) }})
 ## endfor
 {% endif %}
-{% if existsIn(wild_encounter_field, "slot_count") %}
-#define NUM_{{ upper(wild_encounter_field.type) }}_ENCOUNTER_SLOTS ({{ wild_encounter_field.slot_count }})
-{% else %}
-## for encounter_rate in wild_encounter_field.encounter_rates
-## endfor
 #define NUM_{{ upper(wild_encounter_field.type) }}_ENCOUNTER_SLOTS ({{ length(wild_encounter_field.encounter_rates) }})
-{% endif %}
 
 ## endfor
 {% endif %}

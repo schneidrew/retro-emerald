@@ -1474,6 +1474,7 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
     u8 min = MAX_LEVEL;
     u8 max = 0;
     u8 i;
+    bool8 found = FALSE;
 
     if (headerId == HEADER_NONE)
         return MON_LEVEL_NONEXISTENT;
@@ -1490,10 +1491,7 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
         for (i = 0; i < NUM_LAND_MONS_ENCOUNTER_SLOTS; i++)
         {
             if (landMonsInfo->wildPokemon[i].species == species)
-            {
-                min = (min < landMonsInfo->wildPokemon[i].minLevel) ? min : landMonsInfo->wildPokemon[i].minLevel;
-                max = (max > landMonsInfo->wildPokemon[i].maxLevel) ? max : landMonsInfo->wildPokemon[i].maxLevel;
-            }
+                found = TRUE;
         }
         break;
     case ENCOUNTER_TYPE_WATER:    //water
@@ -1506,10 +1504,7 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
         for (i = 0; i < NUM_WATER_MONS_ENCOUNTER_SLOTS; i++)
         {
             if (waterMonsInfo->wildPokemon[i].species == species)
-            {
-                min = (min < waterMonsInfo->wildPokemon[i].minLevel) ? min : waterMonsInfo->wildPokemon[i].minLevel;
-                max = (max > waterMonsInfo->wildPokemon[i].maxLevel) ? max : waterMonsInfo->wildPokemon[i].maxLevel;
-            }
+                found = TRUE;
         }
         break;
     case ENCOUNTER_TYPE_HIDDEN:
@@ -1522,10 +1517,7 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
         for (i = 0; i < NUM_HIDDEN_MONS_ENCOUNTER_SLOTS; i++)
         {
             if (hiddenMonsInfo->wildPokemon[i].species == species)
-            {
-                min = (min < hiddenMonsInfo->wildPokemon[i].minLevel) ? min : hiddenMonsInfo->wildPokemon[i].minLevel;
-                max = (max > hiddenMonsInfo->wildPokemon[i].maxLevel) ? max : hiddenMonsInfo->wildPokemon[i].maxLevel;
-            }
+                found = TRUE;
         }
 
         // use encounter rate to signify is hidden Pokémon are on land or in water
@@ -1538,9 +1530,10 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
         return MON_LEVEL_NONEXISTENT;
     }
 
-    if (max == 0)
+    if (!found)
         return MON_LEVEL_NONEXISTENT;
 
+    GetWildMonLevelRange(&min, &max);
     return RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, min, max);
 }
 

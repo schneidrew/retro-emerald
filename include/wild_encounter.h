@@ -62,6 +62,7 @@ bool8 DoesCurrentMapHaveFishingMons(void);
 void FishingWildEncounter(void);
 u16 GetLocalWildMon(bool8 *isWaterMon);
 u16 GetLocalWaterMon(void);
+void GetWildMonLevelRange(u8 *minLevel, u8 *maxLevel);
 bool8 UpdateRepelCounter(void);
 bool8 IsWildLevelAllowedByRepel(u8 wildLevel);
 bool8 IsAbilityAllowingEncounter(u8 level);

@@ -2,6 +2,7 @@
 #include "battle_setup.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
+#include "caps.h"
 #include "event_data.h"
 #include "fieldmap.h"
 #include "fishing.h"
@@ -510,12 +511,37 @@ static u8 PickWildMonNature(enum Species species)
     return GetSynchronizedNature(WILDMON_ORIGIN, species);
 }
 
-void CreateWildMon(enum Species species, u8 level)
+static u8 ChooseWildMonLevelFromCap(void)
+{
+    u32 levelCap = GetCurrentLevelCap();
+    u32 minLevel;
+    u32 maxLevel;
+
+    if (levelCap > MAX_LEVEL)
+        levelCap = MAX_LEVEL;
+
+    minLevel = levelCap > 20 ? levelCap - 20 : MIN_WILD_LEVEL;
+    maxLevel = levelCap > 10 ? levelCap - 10 : MIN_WILD_LEVEL;
+    if (minLevel < MIN_WILD_LEVEL)
+        minLevel = MIN_WILD_LEVEL;
+    if (maxLevel < minLevel)
+        maxLevel = minLevel;
+
+    return minLevel + Random() % (maxLevel - minLevel + 1);
+}
+
+static void CreateWildMonAtLevel(enum Species species, u8 level)
 {
     ZeroEnemyPartyMons();
     u32 personality = GetMonPersonality(species, GetSynchronizedGender(WILDMON_ORIGIN, species), PickWildMonNature(species), RANDOM_UNOWN_LETTER);
     CreateMonWithIVs(&gParties[B_TRAINER_OPPONENT_A][0], species, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
     GiveMonInitialMoveset(&gParties[B_TRAINER_OPPONENT_A][0]);
+}
+
+void CreateWildMon(enum Species species, u8 unusedLevel)
+{
+    (void)unusedLevel;
+    CreateWildMonAtLevel(species, ChooseWildMonLevelFromCap());
 }
 
 #ifdef BUGFIX
@@ -572,13 +598,13 @@ bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPok
         break;
     }
 
-    level = ChooseWildMonLevel(wildMonInfo->wildPokemon, wildMonIndex, area);
+    level = ChooseWildMonLevelFromCap();
     if (flags & WILD_CHECK_REPEL && !IsWildLevelAllowedByRepel(level))
         return FALSE;
     if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PIKE_ROOM_WILD_MONS && flags & WILD_CHECK_KEEN_EYE && !IsAbilityAllowingEncounter(level))
         return FALSE;
 
-    CreateWildMon(wildMonInfo->wildPokemon[wildMonIndex].species, level);
+    CreateWildMonAtLevel(wildMonInfo->wildPokemon[wildMonIndex].species, level);
     return TRUE;
 }
 
@@ -586,10 +612,10 @@ static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo, u8 
 {
     u8 wildMonIndex = ChooseWildMonIndex_Fishing(rod);
     enum Species wildMonSpecies = wildMonInfo->wildPokemon[wildMonIndex].species;
-    u8 level = ChooseWildMonLevel(wildMonInfo->wildPokemon, wildMonIndex, WILD_AREA_FISHING);
+    u8 level = ChooseWildMonLevelFromCap();
 
     UpdateChainFishingStreak();
-    CreateWildMon(wildMonSpecies, level);
+    CreateWildMonAtLevel(wildMonSpecies, level);
     return wildMonSpecies;
 }
 
@@ -954,10 +980,10 @@ void FishingWildEncounter(u8 rod)
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
     if (CheckFeebasAtCoords(x, y) == TRUE)
     {
-        u8 level = ChooseWildMonLevel(&gWildFeebas, 0, WILD_AREA_FISHING);
+        u8 level = ChooseWildMonLevelFromCap();
 
         species = gWildFeebas.species;
-        CreateWildMon(species, level);
+        CreateWildMonAtLevel(species, level);
     }
     else
     {

@@ -340,6 +340,7 @@ extern const u8 BattleScript_IllusionOff[];
 extern const u8 BattleScript_IllusionOffAndTerastallization[];
 extern const u8 BattleScript_DancerActivates[];
 extern const u8 BattleScript_BassQuakeActivates[];
+extern const u8 BattleScript_LavawrathActivates[];
 extern const u8 BattleScript_AftermathDmg[];
 extern const u8 BattleScript_BattlerFormChange[];
 extern const u8 BattleScript_BattlerFormChangeNoPopup[];

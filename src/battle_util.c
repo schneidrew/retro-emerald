@@ -4127,6 +4127,25 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                 effect++;
             }
             break;
+        case ABILITY_LAVAWRATH:
+            if (IsBattlerAlive(battler)
+             && IsBattlerAlive(gBattlerAttacker)
+             && !gSpecialStatuses[gBattlerAttacker].attackerInParty
+             && IsBattlerTurnDamaged(battler, EXCLUDING_SUBSTITUTES)
+             && !CanBattlerAvoidContactEffects(gBattlerAttacker, battler, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker), move))
+            {
+                gSpecialStatuses[battler].backUpTarget = gBattleStruct->moveTarget[battler] + 1;
+                gBattlerAttacker = gBattlerAbility = battler;
+                gLastUsedAbility = ABILITY_LAVAWRATH;
+                RecordAbilityBattle(battler, ABILITY_LAVAWRATH);
+                gSpecialStatuses[battler].lavawrathUsedMove = TRUE;
+                gCalledMove = MOVE_ERUPTION;
+                gBattleStruct->moveTarget[battler] = GetBattleMoveTarget(MOVE_ERUPTION, TARGET_NONE);
+                gBattlerTarget = gBattleStruct->moveTarget[battler];
+                BattleScriptExecute(BattleScript_LavawrathActivates);
+                effect++;
+            }
+            break;
         case ABILITY_AFTERMATH:
             if (!IsBattlerUnaffectedByMove(gBattlerTarget)
              && !gSpecialStatuses[gBattlerAttacker].attackerInParty

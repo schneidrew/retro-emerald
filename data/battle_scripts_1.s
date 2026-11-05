@@ -5187,6 +5187,11 @@ BattleScript_BassQuakeActivates::
 	waitmessage B_WAIT_TIME_SHORT
 	jumptocalledmove TRUE
 
+BattleScript_LavawrathActivates::
+	call BattleScript_AbilityPopUp
+	waitmessage B_WAIT_TIME_SHORT
+	jumptocalledmove TRUE
+
 BattleScript_SynchronizeActivates::
 	waitstate
 	call BattleScript_AbilityPopUp

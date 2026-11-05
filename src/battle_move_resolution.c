@@ -255,6 +255,7 @@ static enum CancelerResult CancelerPowerPoints(struct BattleCalcValues *cv)
     if (gBattleMons[cv->battlerAtk].pp[gCurrMovePos] == 0
      && cv->move != MOVE_STRUGGLE
      && !gSpecialStatuses[cv->battlerAtk].dancerUsedMove
+        && !gSpecialStatuses[cv->battlerAtk].lavawrathUsedMove
      && !gBattleMons[cv->battlerAtk].volatiles.multipleTurns)
     {
         gBattlescriptCurrInstr = BattleScript_NoPPForMove;
@@ -1006,6 +1007,7 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
 {
     if (gBattleMons[cv->battlerAtk].volatiles.multipleTurns
      || gSpecialStatuses[cv->battlerAtk].dancerUsedMove
+        || gSpecialStatuses[cv->battlerAtk].lavawrathUsedMove
      || gBattleStruct->bouncedMoveIsUsed
      || gBattleStruct->snatchedMoveIsUsed
      || gBattleMons[cv->battlerAtk].volatiles.bideTurns
@@ -5240,6 +5242,7 @@ static enum MoveEndResult MoveEndClearBits(struct BattleCalcValues *cv)
         return MOVEEND_RESULT_RUN_SCRIPT;
     }
 
+    gSpecialStatuses[cv->battlerAtk].lavawrathUsedMove = FALSE;
     gBattleStruct->battlerState[cv->battlerAtk].bassQuakeMoveSucceeded = FALSE;
 
     ValidateBattlers();

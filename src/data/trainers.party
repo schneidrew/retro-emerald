@@ -9678,9 +9678,12 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Treecko
-Level: 5
-IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+Numel 
+Level: 6
+Ability: ABILITY_LAVAWRATH
+Nature: Jolly
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Tackle
 
 === TRAINER_MAY_ROUTE_110_MUDKIP ===
 Name: MAY
@@ -9733,12 +9736,12 @@ Music: Female
 Double Battle: No
 AI: Basic Trainer
 
-Whismur 
-Level: 8
-Ability: ABILITY_BASS_QUAKE
+Numel 
+Level: 6
+Ability: ABILITY_LAVAWRATH
 Nature: Jolly
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- SING
+- Tackle
 
 === TRAINER_MAY_ROUTE_110_TREECKO ===
 Name: MAY

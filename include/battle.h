@@ -138,6 +138,7 @@ struct SpecialStatus
     u8 teraShellAbilityDone:1;
     u8 backUpTarget:3;
     u8 bassQuakeTriggered:1;
+    u8 lavawrathUsedMove:1;
     // End of byte
     enum QueuedSwitch queuedSwitch;
     struct StatStages statStageQueue[NUM_BATTLE_STATS];

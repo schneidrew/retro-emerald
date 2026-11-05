@@ -1170,6 +1170,13 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
         .aiRating = 4,
     },
 
+    [ABILITY_LAVAWRATH] =
+    {
+        .name = _("Lavawrath"),
+        .description = COMPOUND_STRING("Contact triggers Eruption."),
+        .aiRating = 6,
+    },
+
     [ABILITY_REGENERATOR] =
     {
         .name = _("Regenerator"),

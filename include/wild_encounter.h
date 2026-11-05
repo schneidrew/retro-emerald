@@ -20,11 +20,13 @@ struct WildPokemon
     u8 minLevel;
     u8 maxLevel;
     enum Species species;
+    u16 encounterWeight;
 };
 
 struct WildPokemonInfo
 {
     u8 encounterRate;
+    u8 numMons;
     const struct WildPokemon *wildPokemon;
 };
 
@@ -57,7 +59,7 @@ u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, en
 bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior);
 bool8 SweetScentWildEncounter(void);
 bool8 DoesCurrentMapHaveFishingMons(void);
-void FishingWildEncounter(u8 rod);
+void FishingWildEncounter(void);
 u16 GetLocalWildMon(bool8 *isWaterMon);
 u16 GetLocalWaterMon(void);
 bool8 UpdateRepelCounter(void);

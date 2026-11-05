@@ -1832,12 +1832,6 @@ const u16 gItemIconPalette_AcroBike[] = INCGFX_U16("graphics/items/icon_palettes
 const u32 gItemIcon_OldRod[] = INCGFX_U32("graphics/items/icons/old_rod.png", ".4bpp.smol");
 const u16 gItemIconPalette_OldRod[] = INCGFX_U16("graphics/items/icon_palettes/old_rod.pal", ".gbapal");
 
-const u32 gItemIcon_GoodRod[] = INCGFX_U32("graphics/items/icons/good_rod.png", ".4bpp.smol");
-const u16 gItemIconPalette_GoodRod[] = INCGFX_U16("graphics/items/icon_palettes/good_rod.pal", ".gbapal");
-
-const u32 gItemIcon_SuperRod[] = INCGFX_U32("graphics/items/icons/super_rod.png", ".4bpp.smol");
-const u16 gItemIconPalette_SuperRod[] = INCGFX_U16("graphics/items/icon_palettes/super_rod.pal", ".gbapal");
-
 const u32 gItemIcon_DowsingMachine[] = INCGFX_U32("graphics/items/icons/dowsing_machine.png", ".4bpp.smol");
 const u16 gItemIconPalette_DowsingMachine[] = INCGFX_U16("graphics/items/icon_palettes/dowsing_machine.pal", ".gbapal");
 

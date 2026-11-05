@@ -4,28 +4,15 @@ Route12_FishingHouse_Frlg_MapScripts::
 Route12_FishingHouse_EventScript_FishingGuruBrother::
 	lock
 	faceplayer
-	goto_if_set FLAG_GOT_SUPER_ROD, Route12_FishingHouse_EventScript_CheckMagikarpRecord
 	msgbox Route12_FishingHouse_Text_DoYouLikeToFish, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route12_FishingHouse_EventScript_GiveSuperRod
+	goto_if_eq VAR_RESULT, YES, Route12_FishingHouse_EventScript_ExplainMagikarpRecord
 	msgbox Route12_FishingHouse_Text_OhThatsDisappointing
 	release
 	end
 
-Route12_FishingHouse_EventScript_GiveSuperRod::
-	checkitemspace ITEM_SUPER_ROD
-	goto_if_eq VAR_RESULT, FALSE, Route12_FishingHouse_EventScript_NoRoomForSuperRod
-	additem ITEM_SUPER_ROD
-	msgbox Route12_FishingHouse_Text_TakeThisAndFish
-	msgreceiveditem Route12_FishingHouse_Text_ReceivedSuperRod, ITEM_SUPER_ROD
-	setflag FLAG_GOT_SUPER_ROD
+Route12_FishingHouse_EventScript_ExplainMagikarpRecord::
 	msgbox Route12_FishingHouse_Text_IfYouCatchBigMagikarpShowMe
-	release
-	end
-
-Route12_FishingHouse_EventScript_NoRoomForSuperRod::
-	msgbox Route12_FishingHouse_Text_NoRoomForGift
-	release
-	end
+	goto Route12_FishingHouse_EventScript_CheckMagikarpRecord
 
 Route12_FishingHouse_EventScript_CheckMagikarpRecord::
 	setvar VAR_0x8004, SPECIES_MAGIKARP
@@ -104,15 +91,6 @@ Route12_FishingHouse_Text_DoYouLikeToFish::
 	.string "I can't bear to go without.\p"
 	.string "Tell me, do you like to fish?$"
 
-Route12_FishingHouse_Text_TakeThisAndFish::
-	.string "Grand! I like your style.\n"
-	.string "I think we can be friends.\p"
-	.string "Take this and fish, young friend!$"
-
-Route12_FishingHouse_Text_ReceivedSuperRod::
-	.string "{PLAYER} received a SUPER ROD from\n"
-	.string "the FISHING GURU's brother.$"
-
 Route12_FishingHouse_Text_IfYouCatchBigMagikarpShowMe::
 	.string "Fishing is a way of life!\n"
 	.string "It is like the finest poetry.\p"
@@ -120,7 +98,7 @@ Route12_FishingHouse_Text_IfYouCatchBigMagikarpShowMe::
 	.string "and land the big one, my friend.\p"
 	.string "Now, I have a request.\p"
 	.string "If you catch a big MAGIKARP \n"
-	.string "with that ROD, I want to see it.\p"
+	.string "with your FISHING ROD, I want to see it.\p"
 	.string "As much as I love to fish, I also\n"
 	.string "love seeing gigantic MAGIKARP.$"
 
@@ -131,7 +109,7 @@ Route12_FishingHouse_Text_OhThatsDisappointing::
 Route12_FishingHouse_Text_TryFishingBringMeMagikarp::
 	.string "Hello there, {PLAYER}!\n"
 	.string "Have you been fishing?\p"
-	.string "Try fishing with the SUPER ROD in\n"
+	.string "Try fishing with your FISHING ROD in\n"
 	.string "any body of water.\p"
 	.string "You'll find different POKéMON in\n"
 	.string "different places.\p"

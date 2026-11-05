@@ -89,6 +89,9 @@ class WildEncounterAssembler:
             if "fields" in wild_encounter_group:
                 fields = wild_encounter_group["fields"]
                 for field in fields:
+                    if "encounter_rates" not in field:
+                        continue
+
                     field_type = field["type"]
                     macro_base = "ENCOUNTER_CHANCE_" + field_type.upper()
                     previous_group = None
@@ -127,11 +130,12 @@ class WildEncounterAssembler:
             species = mon["species"]
             min_level = 2 if "min_level" not in mon else mon["min_level"]
             max_level = 100 if "max_level" not in mon else mon["max_level"]
-            self.WriteLine(f"{{ {min_level}, {max_level}, {species} }},", 1)
+            encounter_weight = mon.get("encounter_weight", 0)
+            self.WriteLine(f"{{ {min_level}, {max_level}, {species}, {encounter_weight} }},", 1)
 
         self.WriteLine("};")
         self.WriteLine()
-        self.WriteLine(f"const struct WildPokemonInfo {info_name} = {{ {encounter_rate}, {name} }};")
+        self.WriteLine(f"const struct WildPokemonInfo {info_name} = {{ {encounter_rate}, {len(mons)}, {name} }};")
         self.WriteLine()
     
     def WriteTerminator(self):

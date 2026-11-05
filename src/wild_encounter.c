@@ -318,55 +318,31 @@ u32 ChooseWildMonIndex_Rocks(void)
     return wildMonIndex;
 }
 
-// NUM_FISHING_MONS_ENCOUNTER_SLOTS
-static u32 ChooseWildMonIndex_Fishing(u8 rod)
+static u32 ChooseWildMonIndex_Fishing(const struct WildPokemonInfo *wildMonInfo)
 {
-    u8 wildMonIndex = 0;
-    bool8 swap = FALSE;
-    u8 rand = Random() % max(max(ENCOUNTER_CHANCE_FISHING_MONS_OLD_ROD_TOTAL, ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_TOTAL),
-                             ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_TOTAL);
+    u32 totalWeight = 0;
+    u32 rand;
+    u8 wildMonIndex;
+    u8 i;
 
-    if (LURE_STEP_COUNT != 0 && (Random() % 10 < 2))
-        swap = TRUE;
+    fatal_assertf(wildMonInfo->numMons != 0 && wildMonInfo->numMons <= NUM_FISHING_MONS_ENCOUNTER_SLOTS,
+                  "invalid fishing encounter table size: %d", wildMonInfo->numMons);
 
-    switch (rod)
+    for (i = 0; i < wildMonInfo->numMons; i++)
+        totalWeight += wildMonInfo->wildPokemon[i].encounterWeight;
+
+    fatal_assertf(totalWeight != 0, "fishing encounter table has no weight");
+    rand = Random() % totalWeight;
+    for (wildMonIndex = 0; wildMonIndex < wildMonInfo->numMons; wildMonIndex++)
     {
-    case OLD_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_OLD_ROD_SLOT_0)
-            wildMonIndex = 0;
-        else
-            wildMonIndex = 1;
-
-        if (swap)
-            wildMonIndex = 1 - wildMonIndex;
-        break;
-    case GOOD_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_2)
-            wildMonIndex = 2;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_2 && rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_3)
-            wildMonIndex = 3;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_3 && rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_4)
-            wildMonIndex = 4;
-
-        if (swap)
-            wildMonIndex = 6 - wildMonIndex;
-        break;
-    case SUPER_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_5)
-            wildMonIndex = 5;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_5 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_6)
-            wildMonIndex = 6;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_6 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_7)
-            wildMonIndex = 7;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_7 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_8)
-            wildMonIndex = 8;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_8 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_9)
-            wildMonIndex = 9;
-
-        if (swap)
-            wildMonIndex = 14 - wildMonIndex;
-        break;
+        if (rand < wildMonInfo->wildPokemon[wildMonIndex].encounterWeight)
+            break;
+        rand -= wildMonInfo->wildPokemon[wildMonIndex].encounterWeight;
     }
+
+    if (LURE_STEP_COUNT != 0 && wildMonInfo->numMons > 1 && (Random() % 10 < 2))
+        wildMonIndex = wildMonInfo->numMons - 1 - wildMonIndex;
+
     return wildMonIndex;
 }
 
@@ -608,9 +584,9 @@ bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPok
     return TRUE;
 }
 
-static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo, u8 rod)
+static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo)
 {
-    u8 wildMonIndex = ChooseWildMonIndex_Fishing(rod);
+    u8 wildMonIndex = ChooseWildMonIndex_Fishing(wildMonInfo);
     enum Species wildMonSpecies = wildMonInfo->wildPokemon[wildMonIndex].species;
     u8 level = ChooseWildMonLevelFromCap();
 
@@ -969,7 +945,7 @@ bool8 DoesCurrentMapHaveFishingMons(void)
         return FALSE;
 }
 
-void FishingWildEncounter(u8 rod)
+void FishingWildEncounter(void)
 {
     enum Species species;
     u32 headerId;
@@ -989,7 +965,7 @@ void FishingWildEncounter(u8 rod)
     {
         headerId = GetCurrentMapWildMonHeaderId();
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
-        species = GenerateFishingWildMon(gWildMonHeaders[headerId].encounterTypes[timeOfDay].fishingMonsInfo, rod);
+        species = GenerateFishingWildMon(gWildMonHeaders[headerId].encounterTypes[timeOfDay].fishingMonsInfo);
     }
 
     IncrementGameStat(GAME_STAT_FISHING_ENCOUNTERS);

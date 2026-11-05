@@ -357,7 +357,7 @@ void ItemUseOutOfBattle_Rod(u8 taskId)
 
 static void ItemUseOnFieldCB_Rod(u8 taskId)
 {
-    StartFishing(GetItemSecondaryId(gSpecialVar_ItemId));
+    StartFishing();
     DestroyTask(taskId);
 }
 

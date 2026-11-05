@@ -7204,6 +7204,10 @@ static inline u32 CalcAttackStat(struct DamageContext *ctx)
         if (atkBaseSpeciesId == SPECIES_PIKACHU && (GetConfig(B_LIGHT_BALL_ATTACK_BOOST) >= GEN_4 || IsBattleMoveSpecial(move)))
             modifier = uq4_12_multiply_half_down(modifier, UQ_4_12(2.0));
         break;
+    case HOLD_EFFECT_PEARL_BOOST:
+        if ((atkBaseSpeciesId == SPECIES_SPOINK || atkBaseSpeciesId == SPECIES_GRUMPIG) && IsBattleMoveSpecial(move))
+            modifier = uq4_12_multiply_half_down(modifier, uq4_12_add(UQ_4_12(1.0), PercentToUQ4_12(GetBattlerHoldEffectParam(battlerAtk))));
+        break;
     case HOLD_EFFECT_CHOICE_BAND:
         if (IsBattleMovePhysical(move) && GetActiveGimmick(battlerAtk) != GIMMICK_DYNAMAX)
             modifier = uq4_12_multiply_half_down(modifier, UQ_4_12(1.5));

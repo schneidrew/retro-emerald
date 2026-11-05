@@ -2773,12 +2773,14 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("Pearl"),
         .price = (I_PRICE >= GEN_7) ? 2000 * TREASURE_FACTOR: 1400,
+        .holdEffect = HOLD_EFFECT_PEARL_BOOST,
+        .holdEffectParam = 20,
         .description = COMPOUND_STRING(
-            "A pretty pearl\n"
-            "that would sell at a\n"
-            "cheap price."),
+            "Raises Sp. Atk by\n"
+            "20% for Spoink and\n"
+            "Grumpig."),
         .pocket = POCKET_ITEMS,
-        .sortType = ITEM_TYPE_SELLABLE,
+        .sortType = ITEM_TYPE_HELD_ITEM,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
         .flingPower = 30,
@@ -2790,12 +2792,14 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("Big Pearl"),
         .price = (I_PRICE >= GEN_7) ? 8000 * TREASURE_FACTOR: 7500,
+        .holdEffect = HOLD_EFFECT_PEARL_BOOST,
+        .holdEffectParam = 30,
         .description = COMPOUND_STRING(
-            "A lovely large pearl\n"
-            "that would sell at a\n"
-            "high price."),
+            "Raises Sp. Atk by\n"
+            "30% for Spoink and\n"
+            "Grumpig."),
         .pocket = POCKET_ITEMS,
-        .sortType = ITEM_TYPE_SELLABLE,
+        .sortType = ITEM_TYPE_HELD_ITEM,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
         .flingPower = 30,
@@ -2815,12 +2819,14 @@ const struct ItemInfo gItemsInfo[] =
     #else
         .price = 0,
     #endif
+        .holdEffect = HOLD_EFFECT_PEARL_BOOST,
+        .holdEffectParam = 50,
         .description = COMPOUND_STRING(
-            "Very large pearls\n"
-            "that would sell at a\n"
-            "high price."),
+            "Raises Sp. Atk by\n"
+            "50% for Spoink and\n"
+            "Grumpig."),
         .pocket = POCKET_ITEMS,
-        .sortType = ITEM_TYPE_SELLABLE,
+        .sortType = ITEM_TYPE_HELD_ITEM,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
         .flingPower = 30,

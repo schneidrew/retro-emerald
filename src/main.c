@@ -283,7 +283,7 @@ static void ReadKeys(void)
 
         if (gMain.keyRepeatCounter == 0)
         {
-            gMain.newAndRepeatedKeys = keyInput;
+            gMain.newAndRepeatedKeys = keyInput & ~DPAD_ANY;
             gMain.keyRepeatCounter = gKeyRepeatContinueDelay;
         }
     }

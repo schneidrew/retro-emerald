@@ -977,14 +977,14 @@ static void Task_HandleFrontierPassInput(u8 taskId)
 {
     u8 var = FALSE; // Reused, first informs whether the cursor moves, then used as the new cursor area.
 
-    if (JOY_HELD(DPAD_UP) && sPassGfx->cursorSprite->y >= 9)
+    if (JOY_NEW(DPAD_UP) && sPassGfx->cursorSprite->y >= 9)
     {
         sPassGfx->cursorSprite->y -= 2;
         if (sPassGfx->cursorSprite->y <= 7)
             sPassGfx->cursorSprite->y = 2;
         var = TRUE;
     }
-    if (JOY_HELD(DPAD_DOWN) && sPassGfx->cursorSprite->y <= 135)
+    if (JOY_NEW(DPAD_DOWN) && sPassGfx->cursorSprite->y <= 135)
     {
         sPassGfx->cursorSprite->y += 2;
         if (sPassGfx->cursorSprite->y >= 137)
@@ -992,14 +992,14 @@ static void Task_HandleFrontierPassInput(u8 taskId)
         var = TRUE;
     }
 
-    if (JOY_HELD(DPAD_LEFT) && sPassGfx->cursorSprite->x >= 6)
+    if (JOY_NEW(DPAD_LEFT) && sPassGfx->cursorSprite->x >= 6)
     {
         sPassGfx->cursorSprite->x -= 2;
         if (sPassGfx->cursorSprite->x <= 4)
             sPassGfx->cursorSprite->x = 5;
         var = TRUE;
     }
-    if (JOY_HELD(DPAD_RIGHT) && sPassGfx->cursorSprite->x <= 231)
+    if (JOY_NEW(DPAD_RIGHT) && sPassGfx->cursorSprite->x <= 231)
     {
         sPassGfx->cursorSprite->x += 2;
         if (sPassGfx->cursorSprite->x >= 233)

@@ -800,10 +800,10 @@ static void Task_SetClock_HandleInput(u8 taskId)
         {
             gTasks[taskId].tMoveDir = CLOCK_MOVE_NONE;
 
-            if (JOY_HELD(DPAD_LEFT))
+            if (JOY_NEW(DPAD_LEFT))
                 gTasks[taskId].tMoveDir = CLOCK_MOVE_BACKWARD;
 
-            if (JOY_HELD(DPAD_RIGHT))
+            if (JOY_NEW(DPAD_RIGHT))
                 gTasks[taskId].tMoveDir = CLOCK_MOVE_FORWARD;
 
             if (gTasks[taskId].tMoveDir != CLOCK_MOVE_NONE)

@@ -850,22 +850,22 @@ static u8 ProcessRegionMapInput_Full(void)
     input = MAP_INPUT_NONE;
     sRegionMap->cursorDeltaX = 0;
     sRegionMap->cursorDeltaY = 0;
-    if (JOY_HELD(DPAD_UP) && sRegionMap->cursorPosY > MAPCURSOR_Y_MIN)
+    if (JOY_NEW(DPAD_UP) && sRegionMap->cursorPosY > MAPCURSOR_Y_MIN)
     {
         sRegionMap->cursorDeltaY = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_DOWN) && sRegionMap->cursorPosY < MAPCURSOR_Y_MAX)
+    if (JOY_NEW(DPAD_DOWN) && sRegionMap->cursorPosY < MAPCURSOR_Y_MAX)
     {
         sRegionMap->cursorDeltaY = +1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_LEFT) && sRegionMap->cursorPosX > MAPCURSOR_X_MIN)
+    if (JOY_NEW(DPAD_LEFT) && sRegionMap->cursorPosX > MAPCURSOR_X_MIN)
     {
         sRegionMap->cursorDeltaX = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_RIGHT) && sRegionMap->cursorPosX < MAPCURSOR_X_MAX)
+    if (JOY_NEW(DPAD_RIGHT) && sRegionMap->cursorPosX < MAPCURSOR_X_MAX)
     {
         sRegionMap->cursorDeltaX = +1;
         input = MAP_INPUT_MOVE_START;
@@ -933,22 +933,22 @@ static u8 ProcessRegionMapInput_Zoomed(void)
     input = MAP_INPUT_NONE;
     sRegionMap->zoomedCursorDeltaX = 0;
     sRegionMap->zoomedCursorDeltaY = 0;
-    if (JOY_HELD(DPAD_UP) && sRegionMap->scrollY > -0x34)
+    if (JOY_NEW(DPAD_UP) && sRegionMap->scrollY > -0x34)
     {
         sRegionMap->zoomedCursorDeltaY = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_DOWN) && sRegionMap->scrollY < 0x3c)
+    if (JOY_NEW(DPAD_DOWN) && sRegionMap->scrollY < 0x3c)
     {
         sRegionMap->zoomedCursorDeltaY = +1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_LEFT) && sRegionMap->scrollX > -0x2c)
+    if (JOY_NEW(DPAD_LEFT) && sRegionMap->scrollX > -0x2c)
     {
         sRegionMap->zoomedCursorDeltaX = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_RIGHT) && sRegionMap->scrollX < 0xac)
+    if (JOY_NEW(DPAD_RIGHT) && sRegionMap->scrollX < 0xac)
     {
         sRegionMap->zoomedCursorDeltaX = +1;
         input = MAP_INPUT_MOVE_START;

@@ -169,7 +169,7 @@ static u8 ConditionGraphHandleDpadInput(struct Pokenav_ConditionMenu *menu)
     struct PokenavMonList *monListPtr = GetSubstructPtr(POKENAV_SUBSTRUCT_MON_LIST);
     u8 ret = CONDITION_FUNC_NONE;
 
-    if (JOY_HELD(DPAD_UP))
+    if (JOY_NEW(DPAD_UP))
     {
         // Prevent input wrapping in search mode
         if (!menu->inSearchMode || monListPtr->currIndex != 0)
@@ -178,7 +178,7 @@ static u8 ConditionGraphHandleDpadInput(struct Pokenav_ConditionMenu *menu)
             ret = SwitchConditionSummaryIndex(TRUE);
         }
     }
-    else if (JOY_HELD(DPAD_DOWN))
+    else if (JOY_NEW(DPAD_DOWN))
     {
         // Prevent input wrapping in search mode
         if (!menu->inSearchMode || monListPtr->currIndex < monListPtr->listCount - 1)

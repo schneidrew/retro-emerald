@@ -1880,7 +1880,7 @@ static void Task_SelectLocation(u8 taskId)
             return;
         }
 
-        if ((JOY_HELD(DPAD_ANY)) == DPAD_UP)
+        if (JOY_NEW(DPAD_UP))
         {
             sDecorationLastDirectionMoved = DIR_SOUTH;
             gSprites[sDecor_CameraSpriteObjectIdx1].data[2] =  0;
@@ -1888,7 +1888,7 @@ static void Task_SelectLocation(u8 taskId)
             tCursorY--;
         }
 
-        if ((JOY_HELD(DPAD_ANY)) == DPAD_DOWN)
+        if (JOY_NEW(DPAD_DOWN))
         {
             sDecorationLastDirectionMoved = DIR_NORTH;
             gSprites[sDecor_CameraSpriteObjectIdx1].data[2] =  0;
@@ -1896,7 +1896,7 @@ static void Task_SelectLocation(u8 taskId)
             tCursorY++;
         }
 
-        if ((JOY_HELD(DPAD_ANY)) == DPAD_LEFT)
+        if (JOY_NEW(DPAD_LEFT))
         {
             sDecorationLastDirectionMoved = DIR_WEST;
             gSprites[sDecor_CameraSpriteObjectIdx1].data[2] = -2;
@@ -1904,7 +1904,7 @@ static void Task_SelectLocation(u8 taskId)
             tCursorX--;
         }
 
-        if ((JOY_HELD(DPAD_ANY)) == DPAD_RIGHT)
+        if (JOY_NEW(DPAD_RIGHT))
         {
             sDecorationLastDirectionMoved = DIR_EAST;
             gSprites[sDecor_CameraSpriteObjectIdx1].data[2] =  2;

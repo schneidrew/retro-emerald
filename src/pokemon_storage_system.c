@@ -7595,9 +7595,9 @@ static u8 HandleInput_OnBox(void)
             break;
         }
 
-        if (JOY_HELD(DPAD_LEFT))
+        if (JOY_NEW(DPAD_LEFT))
             return INPUT_SCROLL_LEFT;
-        if (JOY_HELD(DPAD_RIGHT))
+        if (JOY_NEW(DPAD_RIGHT))
             return INPUT_SCROLL_RIGHT;
 
         if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)

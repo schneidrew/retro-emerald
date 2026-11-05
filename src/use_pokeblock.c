@@ -612,14 +612,14 @@ static void UsePokeblockMenu(void)
     switch (sInfo->mainState)
     {
     case STATE_HANDLE_INPUT:
-        if (JOY_HELD(DPAD_UP))
+        if (JOY_NEW(DPAD_UP))
         {
             PlaySE(SE_SELECT);
             UpdateSelection(TRUE);
             DestroyConditionSparkleSprites(sMenu->sparkles);
             sInfo->mainState = STATE_UPDATE_SELECTION;
         }
-        else if (JOY_HELD(DPAD_DOWN))
+        else if (JOY_NEW(DPAD_DOWN))
         {
             PlaySE(SE_SELECT);
             UpdateSelection(FALSE);

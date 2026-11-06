@@ -173,7 +173,7 @@ Route104_PrettyPetalFlowerShop_Text_YouCanHaveThis:
 	.string "The more attention you give to flowers,\n"
 	.string "the more beautifully they bloom.\p"
 	.string "You'll like tending flowers. I'm sure\n"
-	.string "of it. You can have this.$"
+	.string "of it.$"
 
 Route104_PrettyPetalFlowerShop_Text_WailmerPailExplanation:
 	.string "While BERRY plants are growing,\n"

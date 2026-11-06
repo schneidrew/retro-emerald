@@ -219,6 +219,7 @@ static EWRAM_DATA u16 *sSlot1TilemapBuffer = 0; // for switching party slots
 static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
 static EWRAM_DATA enum Item sPartyMenuItemId = 0;
+static u16 sAbilityServiceSavedItemId;
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
 static EWRAM_DATA u8 sInitialLevel = 0;
 static EWRAM_DATA u8 sFinalLevel = 0;
@@ -450,6 +451,12 @@ static void CB2_ChooseContestMon(void);
 static void Task_ChoosePartyMon(u8 taskId);
 static void Task_ChooseMonForMoveRelearner(u8);
 static void CB2_ChooseMonForMoveRelearner(void);
+static void Task_ChooseMonForMoveRelearnerService(u8);
+static void CB2_ChooseMonForMoveRelearnerService(void);
+static void Task_StartMoveRelearnerService(u8);
+static bool8 CB2_StartMoveRelearnerService(void);
+static void Task_UseAbilityService(u8);
+static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void);
 static void Task_BattlePyramidChooseMonHeldItems(u8);
 static void ShiftMoveSlot(struct BoxPokemon *, u8, u8);
 static void BlitBitmapToPartyWindow_LeftColumn(u8, u8, u8, u8, u8, bool8);
@@ -8148,6 +8155,56 @@ static void Task_ChooseMonForMoveRelearner(u8 taskId)
     }
 }
 
+void ChooseMonForMoveRelearnerService(void)
+{
+    gMoveRelearnerState = MOVE_RELEARNER_LEVEL_UP_MOVES;
+    gRelearnMode = RELEARN_MODE_SCRIPT;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ChooseMonForMoveRelearnerService, 10);
+}
+
+static void Task_ChooseMonForMoveRelearnerService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        InitPartyMenu(PARTY_MENU_TYPE_MOVE_RELEARNER, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_AND_CLOSE, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, CB2_ChooseMonForMoveRelearnerService);
+        DestroyTask(taskId);
+    }
+}
+
+static void CB2_ChooseMonForMoveRelearnerService(void)
+{
+    u8 monId = GetCursorSelectionMonId();
+
+    gSpecialVar_0x8004 = monId;
+    if (monId < PARTY_SIZE
+     && !GetMonData(&gParties[B_TRAINER_PLAYER][monId], MON_DATA_IS_EGG))
+    {
+        gFieldCallback2 = CB2_StartMoveRelearnerService;
+        SetMainCallback2(CB2_ReturnToField);
+    }
+    else
+    {
+        gRelearnMode = RELEARN_MODE_NONE;
+        gFieldCallback2 = CB2_FadeFromPartyMenu;
+        SetMainCallback2(CB2_ReturnToField);
+    }
+}
+
+static bool8 CB2_StartMoveRelearnerService(void)
+{
+    CreateTask(Task_StartMoveRelearnerService, 10);
+    return TRUE;
+}
+
+static void Task_StartMoveRelearnerService(u8 taskId)
+{
+    TeachMoveRelearnerMove();
+    DestroyTask(taskId);
+}
+
 static void CB2_ChooseMonForMoveRelearner(void)
 {
     gSpecialVar_0x8004 = GetCursorSelectionMonId();
@@ -8157,6 +8214,43 @@ static void CB2_ChooseMonForMoveRelearner(void)
     }
     gFieldCallback2 = CB2_FadeFromPartyMenu;
     SetMainCallback2(CB2_ReturnToField);
+}
+
+static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc))
+{
+    sAbilityServiceSavedItemId = gSpecialVar_ItemId;
+    gSpecialVar_ItemId = ITEM_NONE;
+    gItemUseCB = itemUseCallback;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_UseAbilityService, 10);
+}
+
+void UseAbilityCapsuleService(void)
+{
+    StartAbilityService(ItemUseCB_AbilityCapsule);
+}
+
+void UseAbilityPatchService(void)
+{
+    StartAbilityService(ItemUseCB_AbilityPatch);
+}
+
+static void Task_UseAbilityService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        gFieldCallback2 = CB2_FadeFromPartyMenuAfterAbilityService;
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_USE_ITEM, FALSE, PARTY_MSG_USE_ON_WHICH_MON, Task_HandleChooseMonInput, CB2_ReturnToField);
+        DestroyTask(taskId);
+    }
+}
+
+static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void)
+{
+    gSpecialVar_ItemId = sAbilityServiceSavedItemId;
+    return CB2_FadeFromPartyMenu();
 }
 
 void DoBattlePyramidMonsHaveHeldItem(void)

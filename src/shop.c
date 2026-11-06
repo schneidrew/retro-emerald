@@ -54,6 +54,11 @@ enum {
 };
 
 enum {
+    SHOP_MENU_MAIN,
+    SHOP_MENU_SERVICES,
+};
+
+enum {
     WIN_MONEY,
     WIN_ITEM_LIST,
     WIN_ITEM_DESCRIPTION,
@@ -92,6 +97,7 @@ struct MartInfo
     u16 itemCount;
     u8 windowId;
     u8 martType;
+    u8 menuState;
 };
 
 struct ShopData
@@ -156,8 +162,14 @@ static void Task_ReturnToItemListAfterItemPurchase(u8 taskId);
 static void Task_ReturnToItemListAfterDecorationPurchase(u8 taskId);
 static void Task_HandleShopMenuBuy(u8 taskId);
 static void Task_HandleShopMenuSell(u8 taskId);
+static void Task_HandleShopMenuServices(u8 taskId);
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, struct ListMenu *list);
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
+static void Task_ReturnToServicesMainMenu(u8 taskId);
+static void Task_StartShopService(u8 taskId);
+static void Task_StartAbilityChanger(u8 taskId);
+static void Task_StartAbilityPatcher(u8 taskId);
+static void Task_StartMoveRelearning(u8 taskId);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 {
@@ -165,11 +177,20 @@ static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
     BuyMenuReturnToItemList
 };
 
-static const struct MenuAction sShopMenuActions_BuySellQuit[] =
+static const struct MenuAction sShopMenuActions_BuySellServicesQuit[] =
 {
     { gText_ShopBuy, {.void_u8=Task_HandleShopMenuBuy} },
     { gText_ShopSell, {.void_u8=Task_HandleShopMenuSell} },
+    { gText_ShopServices, {.void_u8=Task_HandleShopMenuServices} },
     { gText_ShopQuit, {.void_u8=Task_HandleShopMenuQuit} }
+};
+
+static const struct MenuAction sShopServicesMenuActions[] =
+{
+    { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
+    { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
+    { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
+    { gText_ShopQuit, {.void_u8=Task_ReturnToServicesMainMenu} },
 };
 
 static const struct MenuAction sShopMenuActions_BuyQuit[] =
@@ -185,7 +206,7 @@ static const struct WindowTemplate sShopMenuWindowTemplates[] =
         .tilemapLeft = 2,
         .tilemapTop = 1,
         .width = 9,
-        .height = 6,
+        .height = 8,
         .paletteNum = 15,
         .baseBlock = 0x0008,
     },
@@ -349,14 +370,17 @@ static u8 CreateShopMenu(u8 martType)
 
     LockPlayerFieldControls();
     sMartInfo.martType = martType;
+    sMartInfo.menuState = SHOP_MENU_MAIN;
 
     if (martType == MART_TYPE_NORMAL)
     {
         struct WindowTemplate winTemplate = sShopMenuWindowTemplates[WIN_BUY_SELL_QUIT];
-        winTemplate.width = GetMaxWidthInMenuTable(sShopMenuActions_BuySellQuit, ARRAY_COUNT(sShopMenuActions_BuySellQuit));
+        u8 mainMenuWidth = GetMaxWidthInMenuTable(sShopMenuActions_BuySellServicesQuit, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit));
+        u8 servicesMenuWidth = GetMaxWidthInMenuTable(sShopServicesMenuActions, ARRAY_COUNT(sShopServicesMenuActions));
+        winTemplate.width = mainMenuWidth > servicesMenuWidth ? mainMenuWidth : servicesMenuWidth;
         sMartInfo.windowId = AddWindow(&winTemplate);
-        sMartInfo.menuActions = sShopMenuActions_BuySellQuit;
-        numMenuItems = ARRAY_COUNT(sShopMenuActions_BuySellQuit);
+        sMartInfo.menuActions = sShopMenuActions_BuySellServicesQuit;
+        numMenuItems = ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit);
     }
     else
     {
@@ -411,7 +435,10 @@ static void Task_ShopMenu(u8 taskId)
         break;
     case MENU_B_PRESSED:
         PlaySE(SE_SELECT);
-        Task_HandleShopMenuQuit(taskId);
+        if (sMartInfo.menuState == SHOP_MENU_SERVICES)
+            Task_ReturnToServicesMainMenu(taskId);
+        else
+            Task_HandleShopMenuQuit(taskId);
         break;
     default:
         sMartInfo.menuActions[inputCode].func.void_u8(taskId);
@@ -441,6 +468,58 @@ static void Task_HandleShopMenuSell(u8 taskId)
     tCallbackLo = (u32)CB2_GoToSellMenu;
     gTasks[taskId].func = Task_GoToBuyOrSellMenu;
     FadeScreen(FADE_TO_BLACK, 0);
+}
+
+static void Task_HandleShopMenuServices(u8 taskId)
+{
+    (void)taskId;
+    sMartInfo.menuState = SHOP_MENU_SERVICES;
+    sMartInfo.menuActions = sShopServicesMenuActions;
+    ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+    SetStandardWindowBorderStyle(sMartInfo.windowId, FALSE);
+    PrintMenuTable(sMartInfo.windowId, ARRAY_COUNT(sShopServicesMenuActions), sMartInfo.menuActions);
+    InitMenuInUpperLeftCornerNormal(sMartInfo.windowId, ARRAY_COUNT(sShopServicesMenuActions), 0);
+    PutWindowTilemap(sMartInfo.windowId);
+    CopyWindowToVram(sMartInfo.windowId, COPYWIN_MAP);
+}
+
+static void Task_ReturnToServicesMainMenu(u8 taskId)
+{
+    (void)taskId;
+    sMartInfo.menuState = SHOP_MENU_MAIN;
+    sMartInfo.menuActions = sShopMenuActions_BuySellServicesQuit;
+    ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+    SetStandardWindowBorderStyle(sMartInfo.windowId, FALSE);
+    PrintMenuTable(sMartInfo.windowId, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit), sMartInfo.menuActions);
+    InitMenuInUpperLeftCornerNormal(sMartInfo.windowId, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit), 0);
+    PutWindowTilemap(sMartInfo.windowId);
+    CopyWindowToVram(sMartInfo.windowId, COPYWIN_MAP);
+}
+
+static void Task_StartShopService(u8 taskId)
+{
+    ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+    RemoveWindow(sMartInfo.windowId);
+    TryPutSmartShopperOnAir();
+    DestroyTask(taskId);
+}
+
+static void Task_StartAbilityChanger(u8 taskId)
+{
+    Task_StartShopService(taskId);
+    UseAbilityCapsuleService();
+}
+
+static void Task_StartAbilityPatcher(u8 taskId)
+{
+    Task_StartShopService(taskId);
+    UseAbilityPatchService();
+}
+
+static void Task_StartMoveRelearning(u8 taskId)
+{
+    Task_StartShopService(taskId);
+    ChooseMonForMoveRelearnerService();
 }
 
 void CB2_ExitSellMenu(void)

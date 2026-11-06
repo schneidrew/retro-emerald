@@ -71,7 +71,7 @@ static const struct WindowTemplate sShopServicesMenuWindowTemplate =
     .tilemapLeft = 2,
     .tilemapTop = 1,
     .width = 9,
-    .height = 14,
+    .height = 16,
     .paletteNum = 15,
     .baseBlock = 0x0008,
 };
@@ -87,6 +87,7 @@ enum {
     PAID_SERVICE_ABILITY_PATCHER,
     PAID_SERVICE_MOVE_RELEARNING,
     PAID_SERVICE_CHANGE_NATURE,
+    PAID_SERVICE_CHANGE_IV,
 };
 
 enum {
@@ -214,6 +215,7 @@ static void Task_StartAbilityChanger(u8 taskId);
 static void Task_StartAbilityPatcher(u8 taskId);
 static void Task_StartMoveRelearning(u8 taskId);
 static void Task_StartNatureChange(u8 taskId);
+static void Task_StartIVChange(u8 taskId);
 static void Task_StartPreDamage(u8 taskId);
 static void Task_StartPoisonService(u8 taskId);
 static void Task_StartBadPoisonService(u8 taskId);
@@ -243,6 +245,7 @@ static const struct MenuAction sShopServicesMenuActions[] =
     { gText_ShopApplyStatus, {.void_u8=Task_HandleShopMenuApplyStatus} },
     { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
     { gText_ShopChangeNature, {.void_u8=Task_StartNatureChange} },
+    { gText_ShopIVChange, {.void_u8=Task_StartIVChange} },
     { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
     { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
     { gText_ShopQuit, {.void_u8=Task_ReturnToServicesMainMenu} },
@@ -563,6 +566,7 @@ static void Task_HandleShopMenuServices(u8 taskId)
     struct WindowTemplate window = sShopServicesMenuWindowTemplate;
 
     (void)taskId;
+    ClearDialogWindowAndFrameToTransparent(0, TRUE);
     ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
     RemoveWindow(sMartInfo.windowId);
     window.width = GetMaxWidthInMenuTable(sShopServicesMenuActions, ARRAY_COUNT(sShopServicesMenuActions));
@@ -578,20 +582,13 @@ static void Task_HandleShopMenuServices(u8 taskId)
 
 static void Task_ReturnToServicesMainMenu(u8 taskId)
 {
-    struct WindowTemplate window = sShopMenuWindowTemplates[WIN_BUY_SELL_QUIT];
-
-    (void)taskId;
     ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
     RemoveWindow(sMartInfo.windowId);
-    window.width = GetMaxWidthInMenuTable(sShopMenuActions_BuySellServicesQuit, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit));
-    sMartInfo.windowId = AddWindow(&window);
-    sMartInfo.menuState = SHOP_MENU_MAIN;
-    sMartInfo.menuActions = sShopMenuActions_BuySellServicesQuit;
-    SetStandardWindowBorderStyle(sMartInfo.windowId, FALSE);
-    PrintMenuTable(sMartInfo.windowId, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit), sMartInfo.menuActions);
-    InitMenuInUpperLeftCornerNormal(sMartInfo.windowId, ARRAY_COUNT(sShopMenuActions_BuySellServicesQuit), 0);
-    PutWindowTilemap(sMartInfo.windowId);
-    CopyWindowToVram(sMartInfo.windowId, COPYWIN_MAP);
+    sMartInfo.windowId = WINDOW_NONE;
+    if (sMartInfo.martType == MART_TYPE_DECOR2)
+        DisplayItemMessageOnField(taskId, gText_CanIHelpWithAnythingElse, ShowShopMenuAfterExitingBuyOrSellMenu);
+    else
+        DisplayItemMessageOnField(taskId, gText_AnythingElseICanHelp, ShowShopMenuAfterExitingBuyOrSellMenu);
 }
 
 static void Task_HandleShopMenuApplyStatus(u8 taskId)
@@ -711,6 +708,10 @@ static void StartPaidService(u8 taskId)
         Task_StartShopService(taskId);
         ChoosePartyMonForNatureService();
         break;
+    case PAID_SERVICE_CHANGE_IV:
+        Task_StartShopService(taskId);
+        ChoosePartyMonForIVService();
+        break;
     }
 }
 
@@ -743,6 +744,11 @@ static void Task_StartMoveRelearning(u8 taskId)
 static void Task_StartNatureChange(u8 taskId)
 {
     BeginPaidServiceConfirmation(taskId, PAID_SERVICE_CHANGE_NATURE, 1);
+}
+
+static void Task_StartIVChange(u8 taskId)
+{
+    BeginPaidServiceConfirmation(taskId, PAID_SERVICE_CHANGE_IV, 1);
 }
 
 static void Task_StartPreDamage(u8 taskId)

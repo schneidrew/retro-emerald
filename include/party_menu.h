@@ -135,6 +135,7 @@ void ChooseMonForMoveRelearner(void);
 void ChooseMonForMoveRelearnerService(void);
 void ChoosePartyMonForPreDamageService(void);
 void ChoosePartyMonForNatureService(void);
+void ChoosePartyMonForIVService(void);
 void ChoosePartyMonForStatusService(u32 status);
 void UseAbilityCapsuleService(void);
 void UseAbilityPatchService(void);

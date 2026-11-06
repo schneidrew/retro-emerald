@@ -233,7 +233,14 @@ static u8 sNatureServiceMonId;
 static u8 sNatureServiceOldNature;
 static u8 sNatureServiceWindowId;
 static u8 sNatureServiceListTaskId;
+static u8 sIVServiceMonId;
+static u8 sIVServiceStat;
+static u8 sIVServiceCurrentValue;
+static u8 sIVServiceStatWindowId;
+static u8 sIVServiceInputWindowId;
+static u8 sIVServiceStatListTaskId;
 static struct ListMenuItem sNatureServiceMenuItems[NUM_NATURES];
+static struct ListMenuItem sIVServiceStatMenuItems[NUM_STATS];
 static const u8 sNatureServiceStatNameHp[] = _("HP");
 static const u8 sNatureServiceStatNameAttack[] = _("ATK");
 static const u8 sNatureServiceStatNameDefense[] = _("DEF");
@@ -248,6 +255,15 @@ static const u8 *const sNatureServiceStatNames[NUM_STATS] =
     [STAT_SPEED] = sNatureServiceStatNameSpeed,
     [STAT_SPATK] = sNatureServiceStatNameSpAttack,
     [STAT_SPDEF] = sNatureServiceStatNameSpDefense,
+};
+static const u8 sIVServiceStatOrder[NUM_STATS] =
+{
+    STAT_HP,
+    STAT_ATK,
+    STAT_SPATK,
+    STAT_DEF,
+    STAT_SPDEF,
+    STAT_SPEED,
 };
 static const u8 sNatureServiceNatureOrder[NUM_NATURES] =
 {
@@ -289,6 +305,8 @@ static const u8 sText_NatureServiceApplied[] = _("{STR_VAR_1}'s nature changed t
 static const u8 sText_NatureServiceStatUp[] = _("+{STR_VAR_1}");
 static const u8 sText_NatureServiceStatDown[] = _("-{STR_VAR_1}");
 static const u8 sText_NatureServiceNeutral[] = _("NEUTRAL");
+static const u8 sText_IVServicePrompt[] = _("{STR_VAR_1}\n{STR_VAR_2} IV: {STR_VAR_3}\nUP/DOWN +/-1, LEFT/RIGHT +/-10\nA: Apply  B: Cancel");
+static const u8 sText_IVServiceApplied[] = _("{STR_VAR_1}'s {STR_VAR_2} IV is now {STR_VAR_3}!{PAUSE_UNTIL_PRESS}");
 static void PrintNatureServiceEffect(u8, u32, u8);
 static const struct WindowTemplate sPreDamageInputWindowTemplate =
 {
@@ -309,6 +327,47 @@ static const struct WindowTemplate sNatureServiceWindowTemplate =
     .height = 16,
     .paletteNum = 15,
     .baseBlock = 0x0008,
+};
+static const struct WindowTemplate sIVServiceStatWindowTemplate =
+{
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 4,
+    .width = 11,
+    .height = 12,
+    .paletteNum = 15,
+    .baseBlock = 0x0008,
+};
+static const struct WindowTemplate sIVServiceInputWindowTemplate =
+{
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 9,
+    .width = 28,
+    .height = 10,
+    .paletteNum = 15,
+    .baseBlock = 0x0008,
+};
+static const struct ListMenuTemplate sIVServiceStatListMenuTemplate =
+{
+    .items = sIVServiceStatMenuItems,
+    .moveCursorFunc = NULL,
+    .itemPrintFunc = NULL,
+    .totalItems = NUM_STATS,
+    .maxShowed = NUM_STATS,
+    .windowId = 0,
+    .header_X = 0,
+    .item_X = 8,
+    .cursor_X = 0,
+    .upText_Y = 1,
+    .cursorPal = 2,
+    .fillValue = 1,
+    .cursorShadowPal = 3,
+    .lettersSpacing = 0,
+    .itemVerticalPadding = 0,
+    .scrollMultiple = LIST_NO_MULTIPLE_SCROLL,
+    .fontId = FONT_NORMAL,
+    .cursorKind = CURSOR_BLACK_ARROW,
 };
 static const struct ListMenuTemplate sNatureServiceListMenuTemplate =
 {
@@ -574,12 +633,23 @@ static void Task_ChoosePartyMonForPreDamageService(u8);
 static void CB2_ChoosePartyMonForPreDamageService(void);
 static void Task_ChoosePartyMonForNatureService(u8);
 static void CB2_ChoosePartyMonForNatureService(void);
+static void Task_ChoosePartyMonForIVService(u8);
+static void CB2_ChoosePartyMonForIVService(void);
 static bool8 CB2_RetryNatureServicePartySelection(void);
 static bool8 CB2_ShowNatureServiceMenu(void);
 static void Task_SetupNatureServiceMenu(u8);
 static void Task_HandleNatureServiceInput(u8);
 static void CloseNatureServiceMenu(void);
 static void Task_ReturnToShopAfterNatureServiceMessage(u8);
+static bool8 CB2_ShowIVServiceStatMenu(void);
+static void Task_SetupIVServiceStatMenu(u8);
+static void Task_HandleIVServiceStatMenuInput(u8);
+static void Task_SetupIVServiceInput(u8);
+static void Task_HandleIVServiceInput(u8);
+static void UpdateIVServiceInputWindow(void);
+static void CloseIVServiceStatMenu(void);
+static void CloseIVServiceInputWindow(void);
+static void Task_ReturnToShopAfterIVServiceMessage(u8);
 static bool8 CB2_ShowPreDamageInput(void);
 static void Task_SetupPreDamageInput(u8);
 static void Task_HandlePreDamageInput(u8);
@@ -8727,6 +8797,224 @@ static void CloseNatureServiceMenu(void)
 }
 
 static void Task_ReturnToShopAfterNatureServiceMessage(u8 taskId)
+{
+    ClearDialogWindowAndFrameToTransparent(0, TRUE);
+    FieldCB_ReturnToPokemartAfterService();
+    DestroyTask(taskId);
+}
+
+void ChoosePartyMonForIVService(void)
+{
+    gItemUseCB = NULL;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ChoosePartyMonForIVService, 10);
+}
+
+static void Task_ChoosePartyMonForIVService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_AND_CLOSE, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, CB2_ChoosePartyMonForIVService);
+        DestroyTask(taskId);
+    }
+}
+
+static void CB2_ChoosePartyMonForIVService(void)
+{
+    u8 i;
+
+    sIVServiceMonId = GetCursorSelectionMonId();
+    if (sIVServiceMonId < PARTY_SIZE)
+    {
+        for (i = 0; i < NUM_STATS; i++)
+        {
+            u8 stat = sIVServiceStatOrder[i];
+
+            sIVServiceStatMenuItems[i].name = sNatureServiceStatNames[stat];
+            sIVServiceStatMenuItems[i].id = stat;
+        }
+        gFieldCallback2 = CB2_ShowIVServiceStatMenu;
+    }
+    else
+    {
+        gFieldCallback2 = CB2_ReturnToPokemartAfterService;
+    }
+    SetMainCallback2(CB2_ReturnToField);
+}
+
+static bool8 CB2_ShowIVServiceStatMenu(void)
+{
+    FadeInFromBlack();
+    CreateTask(Task_SetupIVServiceStatMenu, 8);
+    return TRUE;
+}
+
+static void Task_SetupIVServiceStatMenu(u8 taskId)
+{
+    if (IsWeatherNotFadingIn())
+    {
+        sIVServiceStatWindowId = AddWindow(&sIVServiceStatWindowTemplate);
+        SetStandardWindowBorderStyle(sIVServiceStatWindowId, FALSE);
+        PutWindowTilemap(sIVServiceStatWindowId);
+        gMultiuseListMenuTemplate = sIVServiceStatListMenuTemplate;
+        gMultiuseListMenuTemplate.windowId = sIVServiceStatWindowId;
+        sIVServiceStatListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, 0, 0);
+        CopyWindowToVram(sIVServiceStatWindowId, COPYWIN_MAP);
+        gTasks[taskId].func = Task_HandleIVServiceStatMenuInput;
+    }
+}
+
+static void Task_HandleIVServiceStatMenuInput(u8 taskId)
+{
+    u16 scrollOffset;
+    u16 selectedRow;
+    s32 stat;
+
+    if (JOY_REPEAT(DPAD_UP) || JOY_REPEAT(DPAD_DOWN))
+    {
+        ListMenuGetScrollAndRow(sIVServiceStatListTaskId, &scrollOffset, &selectedRow);
+        if (JOY_REPEAT(DPAD_UP) && scrollOffset + selectedRow == 0)
+        {
+            DestroyListMenuTask(sIVServiceStatListTaskId, NULL, NULL);
+            sIVServiceStatListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, 0, NUM_STATS - 1);
+            return;
+        }
+        if (JOY_REPEAT(DPAD_DOWN) && scrollOffset + selectedRow == NUM_STATS - 1)
+        {
+            DestroyListMenuTask(sIVServiceStatListTaskId, NULL, NULL);
+            sIVServiceStatListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, 0, 0);
+            return;
+        }
+    }
+
+    stat = ListMenu_ProcessInput(sIVServiceStatListTaskId);
+
+    if (stat == LIST_NOTHING_CHOSEN)
+        return;
+    if (stat == LIST_CANCEL)
+    {
+        PlaySE(SE_SELECT);
+        CloseIVServiceStatMenu();
+        FieldCB_ReturnToPokemartAfterService();
+        DestroyTask(taskId);
+        return;
+    }
+
+    sIVServiceStat = stat;
+    sIVServiceCurrentValue = GetMonData(&gParties[B_TRAINER_PLAYER][sIVServiceMonId], MON_DATA_HP_IV + sIVServiceStat);
+    CloseIVServiceStatMenu();
+    gTasks[taskId].func = Task_SetupIVServiceInput;
+}
+
+static void Task_SetupIVServiceInput(u8 taskId)
+{
+    if (IsWeatherNotFadingIn())
+    {
+        sIVServiceInputWindowId = AddWindow(&sIVServiceInputWindowTemplate);
+        SetStandardWindowBorderStyle(sIVServiceInputWindowId, FALSE);
+        PutWindowTilemap(sIVServiceInputWindowId);
+        UpdateIVServiceInputWindow();
+        CopyWindowToVram(sIVServiceInputWindowId, COPYWIN_MAP);
+        gTasks[taskId].func = Task_HandleIVServiceInput;
+    }
+}
+
+static void Task_HandleIVServiceInput(u8 taskId)
+{
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][sIVServiceMonId];
+    s32 adjustment = 0;
+    s32 newValue;
+
+    if (JOY_NEW(DPAD_UP))
+        adjustment = 1;
+    else if (JOY_NEW(DPAD_DOWN))
+        adjustment = -1;
+    else if (JOY_NEW(DPAD_LEFT))
+        adjustment = -10;
+    else if (JOY_NEW(DPAD_RIGHT))
+        adjustment = 10;
+
+    if (adjustment != 0)
+    {
+        newValue = sIVServiceCurrentValue + adjustment;
+        if (newValue < 0)
+            newValue = 0;
+        else if (newValue > MAX_PER_STAT_IVS)
+            newValue = MAX_PER_STAT_IVS;
+
+        if (newValue != sIVServiceCurrentValue)
+        {
+            sIVServiceCurrentValue = newValue;
+            PlaySE(SE_SELECT);
+            UpdateIVServiceInputWindow();
+        }
+    }
+    else if (JOY_NEW(A_BUTTON))
+    {
+        u8 currentValue = GetMonData(mon, MON_DATA_HP_IV + sIVServiceStat);
+        u8 isHyperTrained = GetMonData(mon, MON_DATA_HYPER_TRAINED_HP + sIVServiceStat);
+
+        CloseIVServiceInputWindow();
+        if (currentValue == sIVServiceCurrentValue && !isHyperTrained)
+        {
+            PlaySE(SE_SELECT);
+            DisplayItemMessageOnField(taskId, gText_WontHaveEffect, Task_ReturnToShopAfterIVServiceMessage);
+            return;
+        }
+        else
+        {
+            u8 notHyperTrained = FALSE;
+
+            SetMonData(mon, MON_DATA_HP_IV + sIVServiceStat, &sIVServiceCurrentValue);
+            SetMonData(mon, MON_DATA_HYPER_TRAINED_HP + sIVServiceStat, &notHyperTrained);
+            CalculateMonStats(mon);
+            RemoveBagItem(ITEM_HEART_SCALE, 1);
+            GetMonNickname(mon, gStringVar1);
+            StringCopy(gStringVar2, sNatureServiceStatNames[sIVServiceStat]);
+            ConvertIntToDecimalStringN(gStringVar3, sIVServiceCurrentValue, STR_CONV_MODE_RIGHT_ALIGN, 2);
+            StringExpandPlaceholders(gStringVar4, sText_IVServiceApplied);
+        }
+
+        PlaySE(SE_USE_ITEM);
+        DisplayItemMessageOnField(taskId, gStringVar4, Task_ReturnToShopAfterIVServiceMessage);
+    }
+    else if (JOY_NEW(B_BUTTON))
+    {
+        PlaySE(SE_SELECT);
+        CloseIVServiceInputWindow();
+        gTasks[taskId].func = Task_SetupIVServiceStatMenu;
+    }
+}
+
+static void UpdateIVServiceInputWindow(void)
+{
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][sIVServiceMonId];
+
+    GetMonNickname(mon, gStringVar1);
+    StringCopy(gStringVar2, sNatureServiceStatNames[sIVServiceStat]);
+    ConvertIntToDecimalStringN(gStringVar3, sIVServiceCurrentValue, STR_CONV_MODE_RIGHT_ALIGN, 2);
+    StringExpandPlaceholders(gStringVar4, sText_IVServicePrompt);
+    FillWindowPixelBuffer(sIVServiceInputWindowId, PIXEL_FILL(1));
+    AddTextPrinterParameterized(sIVServiceInputWindowId, FONT_NORMAL, gStringVar4, 4, 0, 0, 0);
+    CopyWindowToVram(sIVServiceInputWindowId, COPYWIN_GFX);
+}
+
+static void CloseIVServiceStatMenu(void)
+{
+    DestroyListMenuTask(sIVServiceStatListTaskId, NULL, NULL);
+    ClearStdWindowAndFrameToTransparent(sIVServiceStatWindowId, TRUE);
+    RemoveWindow(sIVServiceStatWindowId);
+}
+
+static void CloseIVServiceInputWindow(void)
+{
+    ClearStdWindowAndFrameToTransparent(sIVServiceInputWindowId, TRUE);
+    RemoveWindow(sIVServiceInputWindowId);
+}
+
+static void Task_ReturnToShopAfterIVServiceMessage(u8 taskId)
 {
     ClearDialogWindowAndFrameToTransparent(0, TRUE);
     FieldCB_ReturnToPokemartAfterService();

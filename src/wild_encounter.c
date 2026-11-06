@@ -512,7 +512,7 @@ void GetWildMonLevelRange(u8 *minLevel, u8 *maxLevel)
         *maxLevel = *minLevel;
 }
 
-static void CreateWildMonAtLevel(enum Species species, u8 level)
+void CreateWildMonAtLevel(enum Species species, u8 level)
 {
     ZeroEnemyPartyMons();
     u32 personality = GetMonPersonality(species, GetSynchronizedGender(WILDMON_ORIGIN, species), PickWildMonNature(species), RANDOM_UNOWN_LETTER);

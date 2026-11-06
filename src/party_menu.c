@@ -220,8 +220,12 @@ static EWRAM_DATA u16 *sSlot1TilemapBuffer = 0; // for switching party slots
 static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
 static EWRAM_DATA enum Item sPartyMenuItemId = 0;
-static u16 sAbilityServiceSavedItemId;
+static bool8 sAbilityService;
 static u32 sStatusServiceStatus;
+static u8 sPreDamageWindowId;
+static u8 sPreDamageMonId;
+static u16 sPreDamageCurrentHp;
+static u16 sPreDamageMaxHp;
 static const u8 sText_StatusServiceApplied[] = _("{STR_VAR_1} was {STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_StatusServicePoisoned[] = _("poisoned");
 static const u8 sText_StatusServiceBadlyPoisoned[] = _("badly poisoned");
@@ -229,6 +233,17 @@ static const u8 sText_StatusServiceBurned[] = _("burned");
 static const u8 sText_StatusServiceFrozen[] = _("frozen");
 static const u8 sText_StatusServiceParalyzed[] = _("paralyzed");
 static const u8 sText_StatusServicePutToSleep[] = _("put to sleep");
+static const u8 sText_PreDamageHpPrompt[] = _("{STR_VAR_1}'s HP: {STR_VAR_2}/{STR_VAR_3}\nUP/DOWN +/-1, LEFT/RIGHT +/-10\nA: Apply  B: Cancel");
+static const struct WindowTemplate sPreDamageInputWindowTemplate =
+{
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 9,
+    .width = 28,
+    .height = 10,
+    .paletteNum = 15,
+    .baseBlock = 0x0008,
+};
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
 static EWRAM_DATA u8 sInitialLevel = 0;
 static EWRAM_DATA u8 sFinalLevel = 0;
@@ -468,6 +483,13 @@ static void Task_UseAbilityService(u8);
 static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void);
 static void Task_ChoosePartyMonForStatusService(u8);
 static void ItemUseCB_StatusService(u8, TaskFunc);
+static void Task_ChoosePartyMonForPreDamageService(u8);
+static void CB2_ChoosePartyMonForPreDamageService(void);
+static bool8 CB2_ShowPreDamageInput(void);
+static void Task_SetupPreDamageInput(u8);
+static void Task_HandlePreDamageInput(u8);
+static void UpdatePreDamageInputWindow(void);
+static void ClosePreDamageInputWindow(u8);
 static void Task_BattlePyramidChooseMonHeldItems(u8);
 static void ShiftMoveSlot(struct BoxPokemon *, u8, u8);
 static void BlitBitmapToPartyWindow_LeftColumn(u8, u8, u8, u8, u8, bool8);
@@ -5040,7 +5062,8 @@ void Task_AbilityCapsule(u8 taskId)
         break;
     case 5:
         SetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_ABILITY_NUM, &tAbilityNum);
-        RemoveBagItem(gSpecialVar_ItemId, 1);
+        if (!sAbilityService)
+            RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
     }
@@ -5125,7 +5148,8 @@ void Task_AbilityPatch(u8 taskId)
         break;
     case 5:
         SetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_ABILITY_NUM, &tAbilityNum);
-        RemoveBagItem(gSpecialVar_ItemId, 1);
+        if (!sAbilityService)
+            RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
     }
@@ -8253,13 +8277,15 @@ static void ItemUseCB_StatusService(u8 taskId, TaskFunc task)
     const u8 *statusName;
     u32 status;
 
+    (void)task;
+
     if (GetMonData(mon, MON_DATA_HP) == 0 || GetMonData(mon, MON_DATA_STATUS) != STATUS1_NONE)
     {
         gPartyMenuUseExitCallback = FALSE;
         PlaySE(SE_SELECT);
         DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
         ScheduleBgCopyTilemapToVram(2);
-        gTasks[taskId].func = task;
+        gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         return;
     }
 
@@ -8288,26 +8314,153 @@ static void ItemUseCB_StatusService(u8 taskId, TaskFunc task)
         PlaySE(SE_SELECT);
         DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
         ScheduleBgCopyTilemapToVram(2);
-        gTasks[taskId].func = task;
+        gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         return;
     }
 
     status = sStatusServiceStatus;
     SetMonData(mon, MON_DATA_STATUS, &status);
+    SetPartyMonAilmentGfx(mon, &sPartyMenuBoxes[gPartyMenu.slotId]);
     GetMonNickname(mon, gStringVar1);
     StringCopy(gStringVar2, statusName);
     StringExpandPlaceholders(gStringVar4, sText_StatusServiceApplied);
-    gPartyMenuUseExitCallback = TRUE;
+    gPartyMenuUseExitCallback = FALSE;
     PlaySE(SE_USE_ITEM);
     DisplayPartyMenuMessage(gStringVar4, TRUE);
     ScheduleBgCopyTilemapToVram(2);
-    gTasks[taskId].func = task;
+    gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
+}
+
+void ChoosePartyMonForPreDamageService(void)
+{
+    gItemUseCB = NULL;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ChoosePartyMonForPreDamageService, 10);
+}
+
+static void Task_ChoosePartyMonForPreDamageService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_AND_CLOSE, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, CB2_ChoosePartyMonForPreDamageService);
+        DestroyTask(taskId);
+    }
+}
+
+static void CB2_ChoosePartyMonForPreDamageService(void)
+{
+    sPreDamageMonId = GetCursorSelectionMonId();
+    if (sPreDamageMonId < PARTY_SIZE)
+    {
+        sPreDamageMaxHp = GetMonData(&gParties[B_TRAINER_PLAYER][sPreDamageMonId], MON_DATA_MAX_HP);
+        if (sPreDamageMaxHp != 0)
+        {
+            sPreDamageCurrentHp = GetMonData(&gParties[B_TRAINER_PLAYER][sPreDamageMonId], MON_DATA_HP);
+            if (sPreDamageCurrentHp == 0)
+                sPreDamageCurrentHp = 1;
+            else if (sPreDamageCurrentHp > sPreDamageMaxHp)
+                sPreDamageCurrentHp = sPreDamageMaxHp;
+            gFieldCallback2 = CB2_ShowPreDamageInput;
+        }
+        else
+        {
+            gFieldCallback2 = CB2_ReturnToPokemartAfterService;
+        }
+    }
+    else
+    {
+        gFieldCallback2 = CB2_ReturnToPokemartAfterService;
+    }
+    SetMainCallback2(CB2_ReturnToField);
+}
+
+static bool8 CB2_ShowPreDamageInput(void)
+{
+    FadeInFromBlack();
+    CreateTask(Task_SetupPreDamageInput, 8);
+    return TRUE;
+}
+
+static void Task_SetupPreDamageInput(u8 taskId)
+{
+    if (IsWeatherNotFadingIn())
+    {
+        sPreDamageWindowId = AddWindow(&sPreDamageInputWindowTemplate);
+        SetStandardWindowBorderStyle(sPreDamageWindowId, FALSE);
+        PutWindowTilemap(sPreDamageWindowId);
+        UpdatePreDamageInputWindow();
+        CopyWindowToVram(sPreDamageWindowId, COPYWIN_MAP);
+        gTasks[taskId].func = Task_HandlePreDamageInput;
+    }
+}
+
+static void Task_HandlePreDamageInput(u8 taskId)
+{
+    s32 adjustment = 0;
+    s32 newHp;
+
+    if (JOY_NEW(DPAD_UP))
+        adjustment = 1;
+    else if (JOY_NEW(DPAD_DOWN))
+        adjustment = -1;
+    else if (JOY_NEW(DPAD_LEFT))
+        adjustment = -10;
+    else if (JOY_NEW(DPAD_RIGHT))
+        adjustment = 10;
+
+    if (adjustment != 0)
+    {
+        newHp = sPreDamageCurrentHp + adjustment;
+        if (newHp < 1)
+            newHp = 1;
+        else if (newHp > sPreDamageMaxHp)
+            newHp = sPreDamageMaxHp;
+
+        if (newHp != sPreDamageCurrentHp)
+        {
+            sPreDamageCurrentHp = newHp;
+            PlaySE(SE_SELECT);
+            UpdatePreDamageInputWindow();
+        }
+    }
+    else if (JOY_NEW(A_BUTTON))
+    {
+        SetMonData(&gParties[B_TRAINER_PLAYER][sPreDamageMonId], MON_DATA_HP, &sPreDamageCurrentHp);
+        PlaySE(SE_USE_ITEM);
+        ClosePreDamageInputWindow(taskId);
+        ChoosePartyMonForPreDamageService();
+    }
+    else if (JOY_NEW(B_BUTTON))
+    {
+        PlaySE(SE_SELECT);
+        ClosePreDamageInputWindow(taskId);
+        ChoosePartyMonForPreDamageService();
+    }
+}
+
+static void UpdatePreDamageInputWindow(void)
+{
+    GetMonNickname(&gParties[B_TRAINER_PLAYER][sPreDamageMonId], gStringVar1);
+    ConvertIntToDecimalStringN(gStringVar2, sPreDamageCurrentHp, STR_CONV_MODE_RIGHT_ALIGN, 3);
+    ConvertIntToDecimalStringN(gStringVar3, sPreDamageMaxHp, STR_CONV_MODE_RIGHT_ALIGN, 3);
+    StringExpandPlaceholders(gStringVar4, sText_PreDamageHpPrompt);
+    FillWindowPixelBuffer(sPreDamageWindowId, PIXEL_FILL(1));
+    AddTextPrinterParameterized(sPreDamageWindowId, FONT_NORMAL, gStringVar4, 4, 0, 0, 0);
+    CopyWindowToVram(sPreDamageWindowId, COPYWIN_GFX);
+}
+
+static void ClosePreDamageInputWindow(u8 taskId)
+{
+    ClearStdWindowAndFrame(sPreDamageWindowId, FALSE);
+    RemoveWindow(sPreDamageWindowId);
+    DestroyTask(taskId);
 }
 
 static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc))
 {
-    sAbilityServiceSavedItemId = gSpecialVar_ItemId;
-    gSpecialVar_ItemId = ITEM_NONE;
+    sAbilityService = TRUE;
     gItemUseCB = itemUseCallback;
     LockPlayerFieldControls();
     FadeScreen(FADE_TO_BLACK, 0);
@@ -8337,7 +8490,7 @@ static void Task_UseAbilityService(u8 taskId)
 
 static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void)
 {
-    gSpecialVar_ItemId = sAbilityServiceSavedItemId;
+    sAbilityService = FALSE;
     return CB2_ReturnToPokemartAfterService();
 }
 

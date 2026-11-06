@@ -71,7 +71,7 @@ static const struct WindowTemplate sShopServicesMenuWindowTemplate =
     .tilemapLeft = 2,
     .tilemapTop = 1,
     .width = 9,
-    .height = 10,
+    .height = 12,
     .paletteNum = 15,
     .baseBlock = 0x0008,
 };
@@ -198,6 +198,7 @@ static void Task_StartShopService(u8 taskId);
 static void Task_StartAbilityChanger(u8 taskId);
 static void Task_StartAbilityPatcher(u8 taskId);
 static void Task_StartMoveRelearning(u8 taskId);
+static void Task_StartPreDamage(u8 taskId);
 static void Task_StartPoisonService(u8 taskId);
 static void Task_StartBadPoisonService(u8 taskId);
 static void Task_StartBurnService(u8 taskId);
@@ -213,9 +214,9 @@ static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 
 static const struct MenuAction sShopMenuActions_BuySellServicesQuit[] =
 {
+    { gText_ShopServices, {.void_u8=Task_HandleShopMenuServices} },
     { gText_ShopBuy, {.void_u8=Task_HandleShopMenuBuy} },
     { gText_ShopSell, {.void_u8=Task_HandleShopMenuSell} },
-    { gText_ShopServices, {.void_u8=Task_HandleShopMenuServices} },
     { gText_ShopQuit, {.void_u8=Task_HandleShopMenuQuit} }
 };
 
@@ -224,6 +225,7 @@ static const struct MenuAction sShopServicesMenuActions[] =
     { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
     { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
     { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
+    { gText_ShopSetHP, {.void_u8=Task_StartPreDamage} },
     { gText_ShopApplyStatus, {.void_u8=Task_HandleShopMenuApplyStatus} },
     { gText_ShopQuit, {.void_u8=Task_ReturnToServicesMainMenu} },
 };
@@ -635,6 +637,12 @@ static void Task_StartMoveRelearning(u8 taskId)
     ChooseMonForMoveRelearnerService();
 }
 
+static void Task_StartPreDamage(u8 taskId)
+{
+    Task_StartShopService(taskId);
+    ChoosePartyMonForPreDamageService();
+}
+
 static void StartStatusService(u8 taskId, u32 status)
 {
     Task_StartShopService(taskId);
@@ -683,6 +691,11 @@ void FieldCB_ReturnToPokemartAfterService(void)
     CreateTask(Task_ReturnToShopMenuAfterService, 8);
 }
 
+void OpenPokemartMenuAfterService(void)
+{
+    CreateShopMenuAtState(MART_TYPE_NORMAL, sMartInfo.menuState);
+}
+
 bool8 CB2_ReturnToPokemartAfterService(void)
 {
     FieldCB_ReturnToPokemartAfterService();
@@ -693,7 +706,7 @@ static void Task_ReturnToShopMenuAfterService(u8 taskId)
 {
     if (IsWeatherNotFadingIn())
     {
-        CreateShopMenuAtState(MART_TYPE_NORMAL, sMartInfo.menuState);
+        OpenPokemartMenuAfterService();
         DestroyTask(taskId);
     }
 }

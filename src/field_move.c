@@ -160,18 +160,20 @@ const struct FieldMoveInfo gFieldMoveInfo[FIELD_MOVES_COUNT] =
 
     [FIELD_MOVE_TELEPORT] =
     {
-        .fieldMoveFunc = SetUpFieldMove_Teleport,
-        .unlockType = ALWAYS_UNLOCKED,
+        .fieldMoveFunc = NULL,
+        .unlockType = CANT_UNLOCK,
         .moveID = MOVE_TELEPORT,
         .partyMsgID = PARTY_MSG_CANT_USE_HERE,
+        .hideIfLocked = TRUE,
     },
 
     [FIELD_MOVE_DIG] =
     {
-        .fieldMoveFunc = SetUpFieldMove_Dig,
-        .unlockType = ALWAYS_UNLOCKED,
+        .fieldMoveFunc = NULL,
+        .unlockType = CANT_UNLOCK,
         .moveID = MOVE_DIG,
         .partyMsgID = PARTY_MSG_CANT_USE_HERE,
+        .hideIfLocked = TRUE,
     },
 
     [FIELD_MOVE_SECRET_POWER] =
@@ -184,18 +186,20 @@ const struct FieldMoveInfo gFieldMoveInfo[FIELD_MOVES_COUNT] =
 
     [FIELD_MOVE_MILK_DRINK] =
     {
-        .fieldMoveFunc = SetUpFieldMove_SoftBoiled,
-        .unlockType = ALWAYS_UNLOCKED,
+        .fieldMoveFunc = NULL,
+        .unlockType = CANT_UNLOCK,
         .moveID = MOVE_MILK_DRINK,
         .partyMsgID = PARTY_MSG_NOT_ENOUGH_HP,
+        .hideIfLocked = TRUE,
     },
 
     [FIELD_MOVE_SOFT_BOILED] =
     {
-        .fieldMoveFunc = SetUpFieldMove_SoftBoiled,
-        .unlockType = ALWAYS_UNLOCKED,
+        .fieldMoveFunc = NULL,
+        .unlockType = CANT_UNLOCK,
         .moveID = MOVE_SOFT_BOILED,
         .partyMsgID = PARTY_MSG_NOT_ENOUGH_HP,
+        .hideIfLocked = TRUE,
     },
 
     [FIELD_MOVE_SWEET_SCENT] =

@@ -24,6 +24,7 @@
 #include "pokemon_summary_screen.h"
 #include "script.h"
 #include "sound.h"
+#include "shop.h"
 #include "sprite.h"
 #include "string_util.h"
 #include "strings.h"
@@ -81,6 +82,7 @@ static EWRAM_DATA struct {
 
 EWRAM_DATA enum MoveRelearnerStates gMoveRelearnerState = MOVE_RELEARNER_LEVEL_UP_MOVES;
 EWRAM_DATA enum RelearnMode gRelearnMode = RELEARN_MODE_NONE;
+static bool8 sReturnToPokemartAfterMoveRelearner;
 
 static const u16 sUI_Pal[] = INCGFX_U16("graphics/interface/ui_learn_move.png", ".gbapal");
 
@@ -311,8 +313,9 @@ static void VBlankCB_MoveRelearner(void)
 }
 
 // Script arguments: The Pokémon to teach is in VAR_0x8004
-void TeachMoveRelearnerMove(void)
+static void StartTeachMoveRelearnerMove(bool8 returnToPokemart)
 {
+    sReturnToPokemartAfterMoveRelearner = returnToPokemart;
     LockPlayerFieldControls();
     CreateTask(Task_WaitForFadeOut, 10);
     gRelearnMode = RELEARN_MODE_SCRIPT;
@@ -320,12 +323,30 @@ void TeachMoveRelearnerMove(void)
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
 }
 
+void TeachMoveRelearnerMove(void)
+{
+    StartTeachMoveRelearnerMove(FALSE);
+}
+
+void TeachMoveRelearnerMoveFromShop(void)
+{
+    StartTeachMoveRelearnerMove(TRUE);
+}
+
 static void Task_WaitForFadeOut(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
         SetMainCallback2(CB2_InitLearnMove);
-        gFieldCallback = FieldCB_ContinueScriptHandleMusic;
+        if (sReturnToPokemartAfterMoveRelearner)
+        {
+            gFieldCallback = FieldCB_ReturnToPokemartAfterService;
+            sReturnToPokemartAfterMoveRelearner = FALSE;
+        }
+        else
+        {
+            gFieldCallback = FieldCB_ContinueScriptHandleMusic;
+        }
         DestroyTask(taskId);
     }
 }

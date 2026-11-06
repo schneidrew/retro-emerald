@@ -58,6 +58,7 @@
 #include "reshow_battle_screen.h"
 #include "scanline_effect.h"
 #include "script.h"
+#include "shop.h"
 #include "sound.h"
 #include "sprite.h"
 #include "start_menu.h"
@@ -220,6 +221,14 @@ static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
 static EWRAM_DATA enum Item sPartyMenuItemId = 0;
 static u16 sAbilityServiceSavedItemId;
+static u32 sStatusServiceStatus;
+static const u8 sText_StatusServiceApplied[] = _("{STR_VAR_1} was {STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
+static const u8 sText_StatusServicePoisoned[] = _("poisoned");
+static const u8 sText_StatusServiceBadlyPoisoned[] = _("badly poisoned");
+static const u8 sText_StatusServiceBurned[] = _("burned");
+static const u8 sText_StatusServiceFrozen[] = _("frozen");
+static const u8 sText_StatusServiceParalyzed[] = _("paralyzed");
+static const u8 sText_StatusServicePutToSleep[] = _("put to sleep");
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
 static EWRAM_DATA u8 sInitialLevel = 0;
 static EWRAM_DATA u8 sFinalLevel = 0;
@@ -457,6 +466,8 @@ static void Task_StartMoveRelearnerService(u8);
 static bool8 CB2_StartMoveRelearnerService(void);
 static void Task_UseAbilityService(u8);
 static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void);
+static void Task_ChoosePartyMonForStatusService(u8);
+static void ItemUseCB_StatusService(u8, TaskFunc);
 static void Task_BattlePyramidChooseMonHeldItems(u8);
 static void ShiftMoveSlot(struct BoxPokemon *, u8, u8);
 static void BlitBitmapToPartyWindow_LeftColumn(u8, u8, u8, u8, u8, bool8);
@@ -8188,7 +8199,7 @@ static void CB2_ChooseMonForMoveRelearnerService(void)
     else
     {
         gRelearnMode = RELEARN_MODE_NONE;
-        gFieldCallback2 = CB2_FadeFromPartyMenu;
+        gFieldCallback2 = CB2_ReturnToPokemartAfterService;
         SetMainCallback2(CB2_ReturnToField);
     }
 }
@@ -8201,7 +8212,7 @@ static bool8 CB2_StartMoveRelearnerService(void)
 
 static void Task_StartMoveRelearnerService(u8 taskId)
 {
-    TeachMoveRelearnerMove();
+    TeachMoveRelearnerMoveFromShop();
     DestroyTask(taskId);
 }
 
@@ -8214,6 +8225,83 @@ static void CB2_ChooseMonForMoveRelearner(void)
     }
     gFieldCallback2 = CB2_FadeFromPartyMenu;
     SetMainCallback2(CB2_ReturnToField);
+}
+
+void ChoosePartyMonForStatusService(u32 status)
+{
+    sStatusServiceStatus = status;
+    gItemUseCB = ItemUseCB_StatusService;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ChoosePartyMonForStatusService, 10);
+}
+
+static void Task_ChoosePartyMonForStatusService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        gFieldCallback2 = CB2_ReturnToPokemartAfterService;
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_USE_ITEM, FALSE, PARTY_MSG_USE_ON_WHICH_MON, Task_HandleChooseMonInput, CB2_ReturnToField);
+        DestroyTask(taskId);
+    }
+}
+
+static void ItemUseCB_StatusService(u8 taskId, TaskFunc task)
+{
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][gPartyMenu.slotId];
+    const u8 *statusName;
+    u32 status;
+
+    if (GetMonData(mon, MON_DATA_HP) == 0 || GetMonData(mon, MON_DATA_STATUS) != STATUS1_NONE)
+    {
+        gPartyMenuUseExitCallback = FALSE;
+        PlaySE(SE_SELECT);
+        DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
+        ScheduleBgCopyTilemapToVram(2);
+        gTasks[taskId].func = task;
+        return;
+    }
+
+    switch (sStatusServiceStatus)
+    {
+    case STATUS1_POISON:
+        statusName = sText_StatusServicePoisoned;
+        break;
+    case STATUS1_TOXIC_POISON:
+        statusName = sText_StatusServiceBadlyPoisoned;
+        break;
+    case STATUS1_BURN:
+        statusName = sText_StatusServiceBurned;
+        break;
+    case STATUS1_FREEZE:
+        statusName = sText_StatusServiceFrozen;
+        break;
+    case STATUS1_PARALYSIS:
+        statusName = sText_StatusServiceParalyzed;
+        break;
+    case STATUS1_SLEEP_TURN(3):
+        statusName = sText_StatusServicePutToSleep;
+        break;
+    default:
+        gPartyMenuUseExitCallback = FALSE;
+        PlaySE(SE_SELECT);
+        DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
+        ScheduleBgCopyTilemapToVram(2);
+        gTasks[taskId].func = task;
+        return;
+    }
+
+    status = sStatusServiceStatus;
+    SetMonData(mon, MON_DATA_STATUS, &status);
+    GetMonNickname(mon, gStringVar1);
+    StringCopy(gStringVar2, statusName);
+    StringExpandPlaceholders(gStringVar4, sText_StatusServiceApplied);
+    gPartyMenuUseExitCallback = TRUE;
+    PlaySE(SE_USE_ITEM);
+    DisplayPartyMenuMessage(gStringVar4, TRUE);
+    ScheduleBgCopyTilemapToVram(2);
+    gTasks[taskId].func = task;
 }
 
 static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc))
@@ -8250,7 +8338,7 @@ static void Task_UseAbilityService(u8 taskId)
 static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void)
 {
     gSpecialVar_ItemId = sAbilityServiceSavedItemId;
-    return CB2_FadeFromPartyMenu();
+    return CB2_ReturnToPokemartAfterService();
 }
 
 void DoBattlePyramidMonsHaveHeldItem(void)

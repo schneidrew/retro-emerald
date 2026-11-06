@@ -133,6 +133,7 @@ void ChooseContestMon(void);
 void ChoosePartyMon(void);
 void ChooseMonForMoveRelearner(void);
 void ChooseMonForMoveRelearnerService(void);
+void ChoosePartyMonForStatusService(u32 status);
 void UseAbilityCapsuleService(void);
 void UseAbilityPatchService(void);
 void BattlePyramidChooseMonHeldItems(void);

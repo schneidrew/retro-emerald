@@ -3,6 +3,7 @@
 #include "field_move.h"
 #include "fldeff.h"
 #include "fldeff_misc.h"
+#include "item.h"
 #include "party_menu.h"
 #include "strings.h"
 #include "constants/field_move.h"
@@ -22,6 +23,44 @@ static bool32 IsAlwaysTrue(enum FieldMove fieldMove)
 static bool32 HasBadgeForFieldMove(enum FieldMove fieldMove)
 {
     return FlagGet(gFieldMoveInfo[fieldMove].arg + FLAG_BADGE01_GET);
+}
+
+static enum Item GetHMItemForFieldMove(enum FieldMove fieldMove)
+{
+    switch (fieldMove)
+    {
+    case FIELD_MOVE_CUT:
+        return ITEM_HM_CUT;
+    case FIELD_MOVE_FLASH:
+        return ITEM_HM_FLASH;
+    case FIELD_MOVE_ROCK_SMASH:
+        return ITEM_HM_ROCK_SMASH;
+    case FIELD_MOVE_STRENGTH:
+        return ITEM_HM_STRENGTH;
+    case FIELD_MOVE_SURF:
+        return ITEM_HM_SURF;
+    case FIELD_MOVE_FLY:
+        return ITEM_HM_FLY;
+    case FIELD_MOVE_DIVE:
+        return ITEM_HM_DIVE;
+    case FIELD_MOVE_WATERFALL:
+        return ITEM_HM_WATERFALL;
+    default:
+        return ITEM_NONE;
+    }
+}
+
+bool32 FieldMove_IsHM(enum FieldMove fieldMove)
+{
+    return GetHMItemForFieldMove(fieldMove) != ITEM_NONE;
+}
+
+bool32 CanUseFieldMoveInOverworld(enum FieldMove fieldMove)
+{
+    enum Item hmItem = GetHMItemForFieldMove(fieldMove);
+
+    return IsFieldMoveUnlocked(fieldMove)
+        && (hmItem == ITEM_NONE || CheckBagHasItem(hmItem, 1));
 }
 
 const struct FieldMoveUnlock gFieldMoveUnlocks[FIELD_MOVE_UNLOCK_COUNT] =

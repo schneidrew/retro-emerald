@@ -2300,6 +2300,16 @@ bool8 ScrCmd_checkfieldmove(struct ScriptContext *ctx)
     Script_RequestEffects(SCREFF_V1);
 
     gSpecialVar_Result = PARTY_SIZE;
+    if (FieldMove_IsHM(fieldMove))
+    {
+        if (!CanUseFieldMoveInOverworld(fieldMove))
+            return FALSE;
+
+        gSpecialVar_Result = 0;
+        gSpecialVar_0x8004 = GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_SPECIES);
+        return FALSE;
+    }
+
     if (doUnlockedCheck && !IsFieldMoveUnlocked(fieldMove))
         return FALSE;
 

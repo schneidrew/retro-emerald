@@ -1008,6 +1008,7 @@ static void CB2_GiveStarter(void)
 {
     u16 starterMon;
     u8 abilityNum;
+    u8 metLocation;
     u8 i, selected;
     u32 ivs;
     struct Pokemon *mon;
@@ -1017,6 +1018,8 @@ static void CB2_GiveStarter(void)
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
     starterMon = GetStarterPokemon(gSpecialVar_Result);
     ScriptGiveMon(starterMon, 5, ITEM_NONE);
+    metLocation = METLOC_FATEFUL_ENCOUNTER;
+    SetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_MET_LOCATION, &metLocation);
     if (starterMon == SPECIES_TREECKO || starterMon == SPECIES_TORCHIC || starterMon == SPECIES_MUDKIP)
     {
         mon = &gParties[B_TRAINER_PLAYER][0];

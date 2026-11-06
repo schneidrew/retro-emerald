@@ -665,6 +665,7 @@ extern const u8 gText_ShopServices[];
 extern const u8 gText_ShopAbilityChanger[];
 extern const u8 gText_ShopAbilityPatcher[];
 extern const u8 gText_ShopMoveRelearning[];
+extern const u8 gText_ShopChangeNature[];
 extern const u8 gText_ShopSetHP[];
 extern const u8 gText_ShopApplyStatus[];
 extern const u8 gText_StatusPoison[];

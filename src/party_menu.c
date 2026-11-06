@@ -35,6 +35,7 @@
 #include "item_menu.h"
 #include "item_use.h"
 #include "caps.h"
+#include "list_menu.h"
 #include "link.h"
 #include "link_rfu.h"
 #include "mail.h"
@@ -79,6 +80,7 @@
 #include "constants/items.h"
 #include "constants/moves.h"
 #include "constants/party_menu.h"
+#include "constants/pokemon.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
 
@@ -227,6 +229,54 @@ static u8 sPreDamageWindowId;
 static u8 sPreDamageMonId;
 static u16 sPreDamageCurrentHp;
 static u16 sPreDamageMaxHp;
+static u8 sNatureServiceMonId;
+static u8 sNatureServiceOldNature;
+static u8 sNatureServiceWindowId;
+static u8 sNatureServiceListTaskId;
+static struct ListMenuItem sNatureServiceMenuItems[NUM_NATURES];
+static const u8 sNatureServiceStatNameHp[] = _("HP");
+static const u8 sNatureServiceStatNameAttack[] = _("ATK");
+static const u8 sNatureServiceStatNameDefense[] = _("DEF");
+static const u8 sNatureServiceStatNameSpeed[] = _("SPEED");
+static const u8 sNatureServiceStatNameSpAttack[] = _("SP. ATK");
+static const u8 sNatureServiceStatNameSpDefense[] = _("SP. DEF");
+static const u8 *const sNatureServiceStatNames[NUM_STATS] =
+{
+    [STAT_HP] = sNatureServiceStatNameHp,
+    [STAT_ATK] = sNatureServiceStatNameAttack,
+    [STAT_DEF] = sNatureServiceStatNameDefense,
+    [STAT_SPEED] = sNatureServiceStatNameSpeed,
+    [STAT_SPATK] = sNatureServiceStatNameSpAttack,
+    [STAT_SPDEF] = sNatureServiceStatNameSpDefense,
+};
+static const u8 sNatureServiceNatureOrder[NUM_NATURES] =
+{
+    NATURE_LONELY,
+    NATURE_BRAVE,
+    NATURE_ADAMANT,
+    NATURE_NAUGHTY,
+    NATURE_BOLD,
+    NATURE_RELAXED,
+    NATURE_IMPISH,
+    NATURE_LAX,
+    NATURE_TIMID,
+    NATURE_HASTY,
+    NATURE_JOLLY,
+    NATURE_NAIVE,
+    NATURE_MODEST,
+    NATURE_MILD,
+    NATURE_QUIET,
+    NATURE_RASH,
+    NATURE_CALM,
+    NATURE_GENTLE,
+    NATURE_SASSY,
+    NATURE_CAREFUL,
+    NATURE_BASHFUL,
+    NATURE_DOCILE,
+    NATURE_HARDY,
+    NATURE_QUIRKY,
+    NATURE_SERIOUS,
+};
 static const u8 sText_StatusServiceApplied[] = _("{STR_VAR_1} was {STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_StatusServicePoisoned[] = _("poisoned");
 static const u8 sText_StatusServiceBadlyPoisoned[] = _("badly poisoned");
@@ -235,6 +285,11 @@ static const u8 sText_StatusServiceFrozen[] = _("frozen");
 static const u8 sText_StatusServiceParalyzed[] = _("paralyzed");
 static const u8 sText_StatusServicePutToSleep[] = _("put to sleep");
 static const u8 sText_PreDamageHpPrompt[] = _("{STR_VAR_1}'s HP: {STR_VAR_2}/{STR_VAR_3}\nUP/DOWN +/-1, LEFT/RIGHT +/-10\nA: Apply  B: Cancel");
+static const u8 sText_NatureServiceApplied[] = _("{STR_VAR_1}'s nature changed to\n{STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
+static const u8 sText_NatureServiceStatUp[] = _("+{STR_VAR_1}");
+static const u8 sText_NatureServiceStatDown[] = _("-{STR_VAR_1}");
+static const u8 sText_NatureServiceNeutral[] = _("NEUTRAL");
+static void PrintNatureServiceEffect(u8, u32, u8);
 static const struct WindowTemplate sPreDamageInputWindowTemplate =
 {
     .bg = 0,
@@ -244,6 +299,37 @@ static const struct WindowTemplate sPreDamageInputWindowTemplate =
     .height = 10,
     .paletteNum = 15,
     .baseBlock = 0x0008,
+};
+static const struct WindowTemplate sNatureServiceWindowTemplate =
+{
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 1,
+    .width = 28,
+    .height = 16,
+    .paletteNum = 15,
+    .baseBlock = 0x0008,
+};
+static const struct ListMenuTemplate sNatureServiceListMenuTemplate =
+{
+    .items = sNatureServiceMenuItems,
+    .moveCursorFunc = NULL,
+    .itemPrintFunc = PrintNatureServiceEffect,
+    .totalItems = NUM_NATURES,
+    .maxShowed = 8,
+    .windowId = 0,
+    .header_X = 0,
+    .item_X = 8,
+    .cursor_X = 0,
+    .upText_Y = 1,
+    .cursorPal = 2,
+    .fillValue = 1,
+    .cursorShadowPal = 3,
+    .lettersSpacing = 0,
+    .itemVerticalPadding = 0,
+    .scrollMultiple = LIST_NO_MULTIPLE_SCROLL,
+    .fontId = FONT_NORMAL,
+    .cursorKind = CURSOR_BLACK_ARROW,
 };
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
 static EWRAM_DATA u8 sInitialLevel = 0;
@@ -486,6 +572,14 @@ static void Task_ChoosePartyMonForStatusService(u8);
 static void ItemUseCB_StatusService(u8, TaskFunc);
 static void Task_ChoosePartyMonForPreDamageService(u8);
 static void CB2_ChoosePartyMonForPreDamageService(void);
+static void Task_ChoosePartyMonForNatureService(u8);
+static void CB2_ChoosePartyMonForNatureService(void);
+static bool8 CB2_RetryNatureServicePartySelection(void);
+static bool8 CB2_ShowNatureServiceMenu(void);
+static void Task_SetupNatureServiceMenu(u8);
+static void Task_HandleNatureServiceInput(u8);
+static void CloseNatureServiceMenu(void);
+static void Task_ReturnToShopAfterNatureServiceMessage(u8);
 static bool8 CB2_ShowPreDamageInput(void);
 static void Task_SetupPreDamageInput(u8);
 static void Task_HandlePreDamageInput(u8);
@@ -8460,6 +8554,182 @@ static void ClosePreDamageInputWindow(u8 taskId)
 {
     ClearStdWindowAndFrame(sPreDamageWindowId, FALSE);
     RemoveWindow(sPreDamageWindowId);
+    DestroyTask(taskId);
+}
+
+void ChoosePartyMonForNatureService(void)
+{
+    gItemUseCB = NULL;
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_ChoosePartyMonForNatureService, 10);
+}
+
+static void Task_ChoosePartyMonForNatureService(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_AND_CLOSE, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, CB2_ChoosePartyMonForNatureService);
+        DestroyTask(taskId);
+    }
+}
+
+static void CB2_ChoosePartyMonForNatureService(void)
+{
+    u8 i;
+
+    sNatureServiceMonId = GetCursorSelectionMonId();
+    if (sNatureServiceMonId < PARTY_SIZE)
+    {
+        struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][sNatureServiceMonId];
+
+        if (GetMonData(mon, MON_DATA_IS_EGG))
+        {
+            gFieldCallback2 = CB2_RetryNatureServicePartySelection;
+        }
+        else
+        {
+            sNatureServiceOldNature = GetMonData(mon, MON_DATA_HIDDEN_NATURE);
+            for (i = 0; i < NUM_NATURES; i++)
+            {
+                u8 nature = sNatureServiceNatureOrder[i];
+
+                sNatureServiceMenuItems[i].name = gNaturesInfo[nature].name;
+                sNatureServiceMenuItems[i].id = nature;
+            }
+            gFieldCallback2 = CB2_ShowNatureServiceMenu;
+        }
+    }
+    else
+    {
+        gFieldCallback2 = CB2_ReturnToPokemartAfterService;
+    }
+    SetMainCallback2(CB2_ReturnToField);
+}
+
+static bool8 CB2_RetryNatureServicePartySelection(void)
+{
+    ChoosePartyMonForNatureService();
+    return TRUE;
+}
+
+static bool8 CB2_ShowNatureServiceMenu(void)
+{
+    FadeInFromBlack();
+    CreateTask(Task_SetupNatureServiceMenu, 8);
+    return TRUE;
+}
+
+static void Task_SetupNatureServiceMenu(u8 taskId)
+{
+    if (IsWeatherNotFadingIn())
+    {
+        sNatureServiceWindowId = AddWindow(&sNatureServiceWindowTemplate);
+        SetStandardWindowBorderStyle(sNatureServiceWindowId, FALSE);
+        PutWindowTilemap(sNatureServiceWindowId);
+        gMultiuseListMenuTemplate = sNatureServiceListMenuTemplate;
+        gMultiuseListMenuTemplate.windowId = sNatureServiceWindowId;
+        sNatureServiceListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, 0, 0);
+        CopyWindowToVram(sNatureServiceWindowId, COPYWIN_MAP);
+        gTasks[taskId].func = Task_HandleNatureServiceInput;
+    }
+}
+
+static void PrintNatureServiceEffect(u8 windowId, u32 nature, u8 y)
+{
+    u8 effect[16];
+
+    if (gNaturesInfo[nature].statUp == gNaturesInfo[nature].statDown)
+    {
+        AddTextPrinterParameterized(windowId, FONT_NORMAL, sText_NatureServiceNeutral, 80, y, TEXT_SKIP_DRAW, NULL);
+    }
+    else
+    {
+        StringCopy(gStringVar1, sNatureServiceStatNames[gNaturesInfo[nature].statUp]);
+        StringExpandPlaceholders(effect, sText_NatureServiceStatUp);
+        AddTextPrinterParameterized(windowId, FONT_NORMAL, effect, 80, y, TEXT_SKIP_DRAW, NULL);
+
+        StringCopy(gStringVar1, sNatureServiceStatNames[gNaturesInfo[nature].statDown]);
+        StringExpandPlaceholders(effect, sText_NatureServiceStatDown);
+        AddTextPrinterParameterized(windowId, FONT_NORMAL, effect, 152, y, TEXT_SKIP_DRAW, NULL);
+    }
+}
+
+static void Task_HandleNatureServiceInput(u8 taskId)
+{
+    u16 scrollOffset;
+    u16 selectedRow;
+    s32 nature;
+
+    if (JOY_REPEAT(DPAD_UP) || JOY_REPEAT(DPAD_DOWN))
+    {
+        ListMenuGetScrollAndRow(sNatureServiceListTaskId, &scrollOffset, &selectedRow);
+        if (JOY_REPEAT(DPAD_UP) && scrollOffset + selectedRow == 0)
+        {
+            DestroyListMenuTask(sNatureServiceListTaskId, NULL, NULL);
+            sNatureServiceListTaskId = ListMenuInit(&gMultiuseListMenuTemplate,
+                                                    NUM_NATURES - gMultiuseListMenuTemplate.maxShowed,
+                                                    gMultiuseListMenuTemplate.maxShowed - 1);
+            return;
+        }
+        if (JOY_REPEAT(DPAD_DOWN) && scrollOffset + selectedRow == NUM_NATURES - 1)
+        {
+            DestroyListMenuTask(sNatureServiceListTaskId, NULL, NULL);
+            sNatureServiceListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, 0, 0);
+            return;
+        }
+    }
+
+    nature = ListMenu_ProcessInput(sNatureServiceListTaskId);
+    if (nature == LIST_NOTHING_CHOSEN)
+        return;
+
+    if (nature == LIST_CANCEL)
+    {
+        PlaySE(SE_SELECT);
+        CloseNatureServiceMenu();
+        FieldCB_ReturnToPokemartAfterService();
+        DestroyTask(taskId);
+        return;
+    }
+
+    if (nature == sNatureServiceOldNature)
+    {
+        PlaySE(SE_SELECT);
+        CloseNatureServiceMenu();
+        DisplayItemMessageOnField(taskId, gText_WontHaveEffect, Task_ReturnToShopAfterNatureServiceMessage);
+        return;
+    }
+
+    {
+        struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][sNatureServiceMonId];
+        u8 newNature = nature;
+
+        SetMonData(mon, MON_DATA_HIDDEN_NATURE, &newNature);
+        CalculateMonStats(mon);
+        RemoveBagItem(ITEM_HEART_SCALE, 1);
+        GetMonNickname(mon, gStringVar1);
+        StringCopy(gStringVar2, gNaturesInfo[newNature].name);
+        StringExpandPlaceholders(gStringVar4, sText_NatureServiceApplied);
+    }
+
+    PlaySE(SE_USE_ITEM);
+    CloseNatureServiceMenu();
+    DisplayItemMessageOnField(taskId, gStringVar4, Task_ReturnToShopAfterNatureServiceMessage);
+}
+
+static void CloseNatureServiceMenu(void)
+{
+    DestroyListMenuTask(sNatureServiceListTaskId, NULL, NULL);
+    ClearStdWindowAndFrameToTransparent(sNatureServiceWindowId, TRUE);
+    RemoveWindow(sNatureServiceWindowId);
+}
+
+static void Task_ReturnToShopAfterNatureServiceMessage(u8 taskId)
+{
+    ClearDialogWindowAndFrameToTransparent(0, TRUE);
+    FieldCB_ReturnToPokemartAfterService();
     DestroyTask(taskId);
 }
 

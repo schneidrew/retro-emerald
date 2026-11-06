@@ -157,6 +157,7 @@ const u8 gText_ShopServices[] = _("SERVICES");
 const u8 gText_ShopAbilityChanger[] = _("ABILITY CHANGER");
 const u8 gText_ShopAbilityPatcher[] = _("ABILITY PATCHER");
 const u8 gText_ShopMoveRelearning[] = _("MOVE RELEARNING");
+const u8 gText_ShopChangeNature[] = _("CHANGE NATURE");
 const u8 gText_ShopSetHP[] = _("SET HP");
 const u8 gText_ShopApplyStatus[] = _("APPLY STATUS");
 const u8 gText_StatusPoison[] = _("POISON");

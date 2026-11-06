@@ -71,7 +71,7 @@ static const struct WindowTemplate sShopServicesMenuWindowTemplate =
     .tilemapLeft = 2,
     .tilemapTop = 1,
     .width = 9,
-    .height = 12,
+    .height = 14,
     .paletteNum = 15,
     .baseBlock = 0x0008,
 };
@@ -86,6 +86,7 @@ enum {
     PAID_SERVICE_ABILITY_CHANGER,
     PAID_SERVICE_ABILITY_PATCHER,
     PAID_SERVICE_MOVE_RELEARNING,
+    PAID_SERVICE_CHANGE_NATURE,
 };
 
 enum {
@@ -212,6 +213,7 @@ static void Task_StartShopService(u8 taskId);
 static void Task_StartAbilityChanger(u8 taskId);
 static void Task_StartAbilityPatcher(u8 taskId);
 static void Task_StartMoveRelearning(u8 taskId);
+static void Task_StartNatureChange(u8 taskId);
 static void Task_StartPreDamage(u8 taskId);
 static void Task_StartPoisonService(u8 taskId);
 static void Task_StartBadPoisonService(u8 taskId);
@@ -240,6 +242,7 @@ static const struct MenuAction sShopServicesMenuActions[] =
     { gText_ShopSetHP, {.void_u8=Task_StartPreDamage} },
     { gText_ShopApplyStatus, {.void_u8=Task_HandleShopMenuApplyStatus} },
     { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
+    { gText_ShopChangeNature, {.void_u8=Task_StartNatureChange} },
     { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
     { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
     { gText_ShopQuit, {.void_u8=Task_ReturnToServicesMainMenu} },
@@ -704,6 +707,10 @@ static void StartPaidService(u8 taskId)
         Task_StartShopService(taskId);
         ChooseMonForMoveRelearnerService();
         break;
+    case PAID_SERVICE_CHANGE_NATURE:
+        Task_StartShopService(taskId);
+        ChoosePartyMonForNatureService();
+        break;
     }
 }
 
@@ -731,6 +738,11 @@ static void Task_StartAbilityPatcher(u8 taskId)
 static void Task_StartMoveRelearning(u8 taskId)
 {
     BeginPaidServiceConfirmation(taskId, PAID_SERVICE_MOVE_RELEARNING, 1);
+}
+
+static void Task_StartNatureChange(u8 taskId)
+{
+    BeginPaidServiceConfirmation(taskId, PAID_SERVICE_CHANGE_NATURE, 1);
 }
 
 static void Task_StartPreDamage(u8 taskId)

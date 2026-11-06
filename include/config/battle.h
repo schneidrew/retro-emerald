@@ -327,7 +327,7 @@
 #define B_ICE_WEATHER_HAIL              1
 #define B_ICE_WEATHER_SNOW              2
 
-#define B_ABILITY_WEATHER               GEN_LATEST // In Gen6+, Ability-induced weather lasts 5 turns. In Gen5 and earlier, it lasted until the battle ended or until it was changed by another weather condition.
+#define B_ABILITY_WEATHER               GEN_3 // In Gen6+, Ability-induced weather lasts 5 turns. In Gen5 and earlier, it lasted until the battle ended or until it was changed by another weather condition.
 #define B_SANDSTORM_SPDEF_BOOST         GEN_LATEST // In Gen4+, sandstorm increases the Sp. Def of Rock-type Pokémon by 1.5x.
 #define B_SANDSTORM_SOLAR_BEAM          GEN_LATEST // In Gen3+, sandstorm decreases the power of Solar Beam.
 #define B_OVERWORLD_FOG                 GEN_LATEST // In Gen8+, overworld fog summons Misty Terrain in battle. In Gen4 only, overworld fog summons the unique fog weather condition in battle.
@@ -337,6 +337,7 @@
 #define B_OVERWORLD_WEATHER_OVERRIDE    GEN_LATEST // In Gen9+, overworld weather cannot be overridden.
 
 // Terrain settings
+#define B_ABILITY_TERRAIN           GEN_3 // In Gen7+, terrain started by an Ability lasts 5 turns (8 with Terrain Extender). In Gen6 and earlier, it lasts until battle end or it is replaced.
 #define B_TERRAIN_BG_CHANGE         TRUE       // If set to TRUE, terrain moves permanently change the default battle background until the effect fades.
 #define B_THUNDERSTORM_TERRAIN      TRUE       // If set to TRUE, overworld Thunderstorm summons rain and Electric Terrain as in Gen8.
 #define B_TERRAIN_TYPE_BOOST        GEN_LATEST // In Gen8+, terrain increases the power of same-type moves by 30% instead of 50%.

@@ -2151,7 +2151,7 @@ enum WeatherFailure TryChangeBattleWeather(enum BattlerId battler, u32 battleWea
     return WEATHER_FAILURE_SUCCESS;
 }
 
-bool32 TryChangeBattleTerrain(enum BattlerId battler, enum BattleTerrain terrain)
+static bool32 TryChangeBattleTerrainInternal(enum BattlerId battler, enum BattleTerrain terrain, bool32 fromAbility)
 {
     if (terrain == B_TERRAIN_NONE || terrain == gFieldTimers.terrain)
         return FALSE;
@@ -2169,7 +2169,9 @@ bool32 TryChangeBattleTerrain(enum BattlerId battler, enum BattleTerrain terrain
             gBattleMons[i].volatiles.terrainAbilityDone = FALSE;
             ResetParadoxTerrainStat(i);
         }
-        if (GetBattlerHoldEffect(battler) == HOLD_EFFECT_TERRAIN_EXTENDER)
+        if (fromAbility && GetConfig(B_ABILITY_TERRAIN) < GEN_7)
+            gFieldTimers.terrainTimer = 0;
+        else if (GetBattlerHoldEffect(battler) == HOLD_EFFECT_TERRAIN_EXTENDER)
             gFieldTimers.terrainTimer = 8;
         else
             gFieldTimers.terrainTimer = 5;
@@ -2178,6 +2180,16 @@ bool32 TryChangeBattleTerrain(enum BattlerId battler, enum BattleTerrain terrain
     }
 
     return FALSE;
+}
+
+bool32 TryChangeBattleTerrain(enum BattlerId battler, enum BattleTerrain terrain)
+{
+    return TryChangeBattleTerrainInternal(battler, terrain, FALSE);
+}
+
+static bool32 TryChangeBattleTerrainWithAbility(enum BattlerId battler, enum BattleTerrain terrain)
+{
+    return TryChangeBattleTerrainInternal(battler, terrain, TRUE);
 }
 
 static void ForewarnChooseMove(enum BattlerId battler)
@@ -3413,7 +3425,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
         case ABILITY_ELECTRIC_SURGE:
             if (!shouldAbilityTrigger)
                 break;
-            if (TryChangeBattleTerrain(battler, B_TERRAIN_ELECTRIC))
+            if (TryChangeBattleTerrainWithAbility(battler, B_TERRAIN_ELECTRIC))
             {
                 BattleScriptCall(BattleScript_ElectricSurgeActivates);
                 effect++;
@@ -3427,7 +3439,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                 BattleScriptCall(BattleScript_HadronEngineActivatesInTerrain);
                 effect++;
             }
-            else if (TryChangeBattleTerrain(battler, B_TERRAIN_ELECTRIC))
+            else if (TryChangeBattleTerrainWithAbility(battler, B_TERRAIN_ELECTRIC))
             {
                 BattleScriptCall(BattleScript_HadronEngineActivates);
                 effect++;
@@ -3436,7 +3448,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
         case ABILITY_GRASSY_SURGE:
             if (!shouldAbilityTrigger)
                 break;
-            if (TryChangeBattleTerrain(battler, B_TERRAIN_GRASSY))
+            if (TryChangeBattleTerrainWithAbility(battler, B_TERRAIN_GRASSY))
             {
                 BattleScriptCall(BattleScript_GrassySurgeActivates);
                 effect++;
@@ -3445,7 +3457,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
         case ABILITY_MISTY_SURGE:
             if (!shouldAbilityTrigger)
                 break;
-            if (TryChangeBattleTerrain(battler, B_TERRAIN_MISTY))
+            if (TryChangeBattleTerrainWithAbility(battler, B_TERRAIN_MISTY))
             {
                 BattleScriptCall(BattleScript_MistySurgeActivates);
                 effect++;
@@ -3454,7 +3466,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
         case ABILITY_PSYCHIC_SURGE:
             if (!shouldAbilityTrigger)
                 break;
-            if (TryChangeBattleTerrain(battler, B_TERRAIN_PSYCHIC))
+            if (TryChangeBattleTerrainWithAbility(battler, B_TERRAIN_PSYCHIC))
             {
                 BattleScriptCall(BattleScript_PsychicSurgeActivates);
                 effect++;
@@ -4364,7 +4376,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
             break;
         case ABILITY_SEED_SOWER:
             if (IsBattlerTurnDamaged(gBattlerTarget, EXCLUDING_SUBSTITUTES)
-             && TryChangeBattleTerrain(gBattlerTarget, B_TERRAIN_GRASSY))
+             && TryChangeBattleTerrainWithAbility(gBattlerTarget, B_TERRAIN_GRASSY))
             {
                 BattleScriptCall(BattleScript_SeedSowerActivates);
                 effect++;

@@ -3,7 +3,30 @@ PetalburgCity_MapScripts::
 	map_script MAP_SCRIPT_ON_FRAME_TABLE, PetalburgCity_OnFrame
 	.byte 0
 
+PetalburgCity_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_PETALBURG_GYM, PetalburgCity_EventScript_AllowEntry
+	goto_if_eq VAR_PETALBURG_GYM_STATE, 6, PetalburgCity_EventScript_AskToEnterGym
+	goto PetalburgCity_EventScript_AllowEntry
+
+PetalburgCity_EventScript_AskToEnterGym::
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, PetalburgCity_EventScript_DeclineGymChallenge
+
+PetalburgCity_EventScript_AllowEntry::
+	releaseall
+	end
+
+PetalburgCity_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 PetalburgCity_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	setflag FLAG_VISITED_PETALBURG_CITY
 	call_if_eq VAR_PETALBURG_CITY_STATE, 0, PetalburgCity_EventScript_MoveGymBoyToWestEntrance
 	call_if_eq VAR_PETALBURG_CITY_STATE, 2, PetalburgCity_EventScript_DisableMapNameAndMusic

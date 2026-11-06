@@ -430,7 +430,26 @@
       "dest_warp_id": "33"
     }
   ],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 4,
+      "y": 111,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "PetalburgCity_Gym_EventScript_TryExit"
+    },
+    {
+      "type": "trigger",
+      "x": 5,
+      "y": 111,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "PetalburgCity_Gym_EventScript_TryExit"
+    }
+  ],
   "bg_events": [
     {
       "type": "sign",

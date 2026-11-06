@@ -1,7 +1,37 @@
 RustboroCity_Gym_MapScripts::
+	map_script MAP_SCRIPT_ON_TRANSITION, RustboroCity_Gym_OnTransition
 	.byte 0
 
+RustboroCity_Gym_OnTransition:
+	goto_if_set FLAG_DEFEATED_RUSTBORO_GYM, RustboroCity_Gym_EventScript_ClearChallengeLock
+	setvar VAR_GYM_CHALLENGE_LOCK, 1
+	end
+
+RustboroCity_Gym_EventScript_ClearChallengeLock:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	end
+
+RustboroCity_Gym_EventScript_TryExit::
+	lockall
+	goto_if_unset FLAG_DEFEATED_RUSTBORO_GYM, RustboroCity_Gym_EventScript_ExitBlocked
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	warp MAP_RUSTBORO_CITY, 27, 20
+	waitstate
+	end
+
+RustboroCity_Gym_EventScript_ExitBlocked::
+	msgbox Common_Text_GymCannotLeave, MSGBOX_DEFAULT
+	applymovement LOCALID_PLAYER, Common_Movement_WalkUp
+	waitmovement 0
+	releaseall
+	end
+
 RustboroCity_Gym_EventScript_Roxanne::
+	goto_if_set FLAG_DEFEATED_RUSTBORO_GYM, RustboroCity_Gym_EventScript_BattleRoxanne
+	setvar VAR_0x8008, 1
+	call Common_EventScript_CheckGymTrainersDefeated
+	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymLeaderRequiresTrainers
+RustboroCity_Gym_EventScript_BattleRoxanne::
 	trainerbattle_single TRAINER_ROXANNE_1, RustboroCity_Gym_Text_RoxanneIntro, RustboroCity_Gym_Text_RoxanneDefeat, RustboroCity_Gym_EventScript_RoxanneDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, RustboroCity_Gym_EventScript_RoxanneRematch

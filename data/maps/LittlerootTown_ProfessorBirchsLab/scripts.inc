@@ -125,6 +125,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter::
 LittlerootTown_ProfessorBirchsLab_EventScript_GiveInfiniteCandy::
 	giveitem ITEM_INFINITE_CANDY, 1
 	giveitem ITEM_INFINITE_REPEL, 1
+	giveitem ITEM_FISHING_ROD, 1
 	goto LittlerootTown_ProfessorBirchsLab_EventScript_GoSeeRival
 	end
 

@@ -14081,9 +14081,9 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_AcroBike,
     },
 
-    [ITEM_OLD_ROD] =
+    [ITEM_FISHING_ROD] =
     {
-        .name = ITEM_NAME("Old Rod"),
+        .name = ITEM_NAME("Fishing Rod"),
         .price = 0,
         .description = COMPOUND_STRING(
             "Use by any body of\n"
@@ -14093,43 +14093,8 @@ const struct ItemInfo gItemsInfo[] =
         .pocket = POCKET_KEY_ITEMS,
         .type = ITEM_USE_FIELD,
         .fieldUseFunc = ItemUseOutOfBattle_Rod,
-        .secondaryId = OLD_ROD,
         .iconPic = gItemIcon_OldRod,
         .iconPalette = gItemIconPalette_OldRod,
-    },
-
-    [ITEM_GOOD_ROD] =
-    {
-        .name = ITEM_NAME("Good Rod"),
-        .price = 0,
-        .description = COMPOUND_STRING(
-            "A decent fishing\n"
-            "rod for catching\n"
-            "wild Pokémon."),
-        .importance = 1,
-        .pocket = POCKET_KEY_ITEMS,
-        .type = ITEM_USE_FIELD,
-        .fieldUseFunc = ItemUseOutOfBattle_Rod,
-        .secondaryId = GOOD_ROD,
-        .iconPic = gItemIcon_GoodRod,
-        .iconPalette = gItemIconPalette_GoodRod,
-    },
-
-    [ITEM_SUPER_ROD] =
-    {
-        .name = ITEM_NAME("Super Rod"),
-        .price = 0,
-        .description = COMPOUND_STRING(
-            "The best fishing\n"
-            "rod for catching\n"
-            "wild Pokémon."),
-        .importance = 1,
-        .pocket = POCKET_KEY_ITEMS,
-        .type = ITEM_USE_FIELD,
-        .fieldUseFunc = ItemUseOutOfBattle_Rod,
-        .secondaryId = SUPER_ROD,
-        .iconPic = gItemIcon_SuperRod,
-        .iconPalette = gItemIconPalette_SuperRod,
     },
 
     [ITEM_DOWSING_MACHINE] =

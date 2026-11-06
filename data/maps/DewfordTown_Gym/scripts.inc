@@ -2,7 +2,29 @@ DewfordTown_Gym_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, DewfordTown_Gym_OnTransition
 	.byte 0
 
+DewfordTown_Gym_EventScript_TryExit::
+	lockall
+	goto_if_unset FLAG_DEFEATED_DEWFORD_GYM, DewfordTown_Gym_EventScript_ExitBlocked
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	warp MAP_DEWFORD_TOWN, 8, 18
+	waitstate
+	end
+
+DewfordTown_Gym_EventScript_ExitBlocked::
+	msgbox Common_Text_GymCannotLeave, MSGBOX_DEFAULT
+	applymovement LOCALID_PLAYER, Common_Movement_WalkUp
+	waitmovement 0
+	releaseall
+	end
+
 DewfordTown_Gym_OnTransition:
+	goto_if_set FLAG_DEFEATED_DEWFORD_GYM, DewfordTown_Gym_EventScript_ClearChallengeLock
+	setvar VAR_GYM_CHALLENGE_LOCK, 1
+	goto DewfordTown_Gym_EventScript_ContinueOnTransition
+
+DewfordTown_Gym_EventScript_ClearChallengeLock:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+DewfordTown_Gym_EventScript_ContinueOnTransition:
 	call DewfordTown_Gym_EventScript_SetFlashLevel
 	end
 
@@ -133,6 +155,11 @@ DewfordTown_Gym_EventScript_StopCountingTrainers::
 	return
 
 DewfordTown_Gym_EventScript_Brawly::
+	goto_if_set FLAG_DEFEATED_DEWFORD_GYM, DewfordTown_Gym_EventScript_BattleBrawly
+	setvar VAR_0x8008, 2
+	call Common_EventScript_CheckGymTrainersDefeated
+	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymLeaderRequiresTrainers
+DewfordTown_Gym_EventScript_BattleBrawly::
 	trainerbattle_single TRAINER_BRAWLY_1, DewfordTown_Gym_Text_BrawlyIntro, DewfordTown_Gym_Text_BrawlyDefeat, DewfordTown_Gym_EventScript_BrawlyDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, DewfordTown_Gym_EventScript_BrawlyRematch

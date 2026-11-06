@@ -863,9 +863,10 @@ enum __attribute__((packed)) Item
     ITEM_BICYCLE = 706,
     ITEM_MACH_BIKE = 707,
     ITEM_ACRO_BIKE = 708,
-    ITEM_OLD_ROD = 709,
-    ITEM_GOOD_ROD = 710,
-    ITEM_SUPER_ROD = 711,
+    ITEM_FISHING_ROD = 709,
+    // Preserve old save IDs; LoadGameSave migrates these to ITEM_FISHING_ROD.
+    ITEM_LEGACY_GOOD_ROD = 710,
+    ITEM_LEGACY_SUPER_ROD = 711,
     ITEM_DOWSING_MACHINE = 712,
     ITEM_ITEMFINDER = ITEM_DOWSING_MACHINE, // Pre-Gen IV name
     ITEM_DOWSING_MCHN = ITEM_DOWSING_MACHINE, // Gen IV-V name
@@ -1094,11 +1095,6 @@ enum BerryId
 
 #define MAX_ITEM_DIGITS         ((MAX_BAG_ITEM_CAPACITY > 99) ? 3 : 2)
 #define MAX_PYRAMID_ITEM_DIGITS ((MAX_PYRAMID_BAG_ITEM_CAPACITY > 99) ? 3 : 2)
-
-// Secondary IDs for rods
-#define OLD_ROD   0
-#define GOOD_ROD  1
-#define SUPER_ROD 2
 
 // Secondary IDs for bikes
 #define MACH_BIKE 0

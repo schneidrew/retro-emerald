@@ -2,7 +2,29 @@ LavaridgeTown_Gym_1F_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, LavaridgeTown_Gym_1F_OnTransition
 	.byte 0
 
+LavaridgeTown_Gym_1F_EventScript_TryExit::
+	lockall
+	goto_if_unset FLAG_DEFEATED_LAVARIDGE_GYM, LavaridgeTown_Gym_1F_EventScript_ExitBlocked
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	warp MAP_LAVARIDGE_TOWN, 5, 16
+	waitstate
+	end
+
+LavaridgeTown_Gym_1F_EventScript_ExitBlocked::
+	msgbox Common_Text_GymCannotLeave, MSGBOX_DEFAULT
+	applymovement LOCALID_PLAYER, Common_Movement_WalkUp
+	waitmovement 0
+	releaseall
+	end
+
 LavaridgeTown_Gym_1F_OnTransition:
+	goto_if_set FLAG_DEFEATED_LAVARIDGE_GYM, LavaridgeTown_Gym_1F_EventScript_ClearChallengeLock
+	setvar VAR_GYM_CHALLENGE_LOCK, 1
+	goto LavaridgeTown_Gym_1F_EventScript_ContinueOnTransition
+
+LavaridgeTown_Gym_1F_EventScript_ClearChallengeLock:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+LavaridgeTown_Gym_1F_EventScript_ContinueOnTransition:
 	call LavaridgeTown_Gym_1F_EventScript_SetTrainerTempVars
 	call LavaridgeTown_Gym_1F_EventScript_CheckBuryTrainers
 	end
@@ -44,6 +66,11 @@ LavaridgeTown_Gym_1F_EventScript_EndCheckBuryTrainers::
 	return
 
 LavaridgeTown_Gym_1F_EventScript_Flannery::
+	goto_if_set FLAG_DEFEATED_LAVARIDGE_GYM, LavaridgeTown_Gym_1F_EventScript_BattleFlannery
+	setvar VAR_0x8008, 4
+	call Common_EventScript_CheckGymTrainersDefeated
+	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymLeaderRequiresTrainers
+LavaridgeTown_Gym_1F_EventScript_BattleFlannery::
 	trainerbattle_single TRAINER_FLANNERY_1, LavaridgeTown_Gym_1F_Text_FlanneryIntro, LavaridgeTown_Gym_1F_Text_FlanneryDefeat, LavaridgeTown_Gym_1F_EventScript_FlanneryDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, LavaridgeTown_Gym_1F_EventScript_FlanneryRematch

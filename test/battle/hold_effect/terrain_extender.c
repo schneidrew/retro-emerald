@@ -24,6 +24,7 @@ SINGLE_BATTLE_TEST("Terrain created by moves lasts 5 turns without Terrain Exten
     PARAMETRIZE { move = MOVE_PSYCHIC_TERRAIN; }
 
     GIVEN {
+        WITH_CONFIG(B_ABILITY_TERRAIN, GEN_6);
         PLAYER(SPECIES_WOBBUFFET) { Speed(100); Moves(move); }
         OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
     } WHEN {
@@ -200,6 +201,34 @@ SINGLE_BATTLE_TEST("Terrain Extender makes terrain created by abilities last 8 t
             break;
         default:
             break;
+        }
+    }
+
+    SINGLE_BATTLE_TEST("Terrain created by abilities lasts indefinitely with pre-Gen 7 rules")
+    {
+        enum Ability ability;
+        enum Species species;
+        enum BattleTerrain terrain;
+
+        PARAMETRIZE { ability = ABILITY_ELECTRIC_SURGE; species = SPECIES_PINCURCHIN; terrain = B_TERRAIN_ELECTRIC; }
+        PARAMETRIZE { ability = ABILITY_GRASSY_SURGE;   species = SPECIES_RILLABOOM;   terrain = B_TERRAIN_GRASSY; }
+        PARAMETRIZE { ability = ABILITY_MISTY_SURGE;    species = SPECIES_TAPU_FINI;    terrain = B_TERRAIN_MISTY; }
+        PARAMETRIZE { ability = ABILITY_PSYCHIC_SURGE;  species = SPECIES_TAPU_LELE;   terrain = B_TERRAIN_PSYCHIC; }
+
+        GIVEN {
+            WITH_CONFIG(B_ABILITY_TERRAIN, GEN_6);
+            PLAYER(species) { Speed(100); Ability(ability); }
+            OPPONENT(SPECIES_WOBBUFFET) { Speed(50); }
+        } WHEN {
+            TURN {}
+            TURN {}
+            TURN {}
+            TURN {}
+            TURN {}
+            TURN {}
+        } THEN {
+            EXPECT_EQ(gFieldTimers.terrain, terrain);
+            EXPECT_EQ(gFieldTimers.terrainTimer, 0);
         }
     }
 }

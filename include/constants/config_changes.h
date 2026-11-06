@@ -232,6 +232,7 @@
     F(B_PREFERRED_ICE_WEATHER,     preferredIceWeather,     (u32, B_ICE_WEATHER_SNOW)) /* TODO: use in tests */ \
     F(B_OVERWORLD_WEATHER_OVERRIDE,overworldWeatherOverride,(u32, GEN_COUNT - 1)) \
     /* Terrain settings */ \
+    F(B_ABILITY_TERRAIN,           abilityTerrain,           (u32, GEN_COUNT - 1)) \
     F(B_TERRAIN_TYPE_BOOST,        terrainTypeBoost,        (u32, GEN_COUNT - 1)) /* TODO: use in tests */ \
     F(B_SECRET_POWER_EFFECT,       secretPowerEffect,       (u32, GEN_COUNT - 1)) /* TODO: use in tests */ \
     F(B_SECRET_POWER_ANIMATION,    secretPowerAnimation,    (u32, GEN_COUNT - 1)) /* TODO: use in tests */ \

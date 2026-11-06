@@ -6,6 +6,7 @@
 #include "task.h"
 #include "decompress.h"
 #include "load_save.h"
+#include "item.h"
 #include "overworld.h"
 #include "hall_of_fame.h"
 #include "pokemon_storage_system.h"
@@ -22,6 +23,7 @@ static u8 HandleWriteSector(u16, const struct SaveSectorLocation *);
 static u8 HandleReplaceSector(u16, const struct SaveSectorLocation *);
 static void CopyToSaveBlock3(u32, struct SaveSector *);
 static void CopyFromSaveBlock3(u32, struct SaveSector *);
+static void MigrateFishingRodItems(void);
 
 // Divide save blocks into individual chunks to be written to flash sectors
 
@@ -893,6 +895,8 @@ u8 LoadGameSave(u8 saveType)
     default:
         status = TryLoadSaveSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
         CopyPartyAndObjectsFromSave();
+        if (status == SAVE_STATUS_OK)
+            MigrateFishingRodItems();
         gSaveFileStatus = status;
         gGameContinueCallback = NULL;
         break;
@@ -912,6 +916,47 @@ u8 LoadGameSave(u8 saveType)
     }
 
     return status;
+}
+
+static void MigrateFishingRodItems(void)
+{
+    struct BagPocket *pocket = &gBagPockets[POCKET_KEY_ITEMS];
+    bool32 hasFishingRod = FALSE;
+    u16 readIndex;
+    u16 writeIndex = 0;
+
+    for (readIndex = 0; readIndex < BAG_KEYITEMS_COUNT; readIndex++)
+    {
+        u16 itemId = BagPocket_GetSlotData(pocket, readIndex).itemId;
+
+        if (itemId == ITEM_LEGACY_GOOD_ROD || itemId == ITEM_LEGACY_SUPER_ROD)
+            break;
+    }
+    if (readIndex == BAG_KEYITEMS_COUNT)
+        return;
+
+    for (readIndex = 0; readIndex < BAG_KEYITEMS_COUNT; readIndex++)
+    {
+        struct ItemSlot slot = BagPocket_GetSlotData(pocket, readIndex);
+
+        if (slot.itemId == ITEM_NONE || slot.quantity == 0)
+            continue;
+
+        if (slot.itemId == ITEM_LEGACY_GOOD_ROD || slot.itemId == ITEM_LEGACY_SUPER_ROD)
+            slot.itemId = ITEM_FISHING_ROD;
+
+        if (slot.itemId == ITEM_FISHING_ROD)
+        {
+            if (hasFishingRod)
+                continue;
+            hasFishingRod = TRUE;
+        }
+
+        BagPocket_SetSlotData(pocket, writeIndex++, slot);
+    }
+
+    while (writeIndex < BAG_KEYITEMS_COUNT)
+        BagPocket_SetSlotData(pocket, writeIndex++, (struct ItemSlot) {ITEM_NONE, 0});
 }
 
 u16 GetSaveBlocksPointersBaseOffset(void)

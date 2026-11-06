@@ -587,6 +587,24 @@
   "coord_events": [
     {
       "type": "trigger",
+      "x": 6,
+      "y": 35,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "MossdeepCity_Gym_EventScript_TryExit"
+    },
+    {
+      "type": "trigger",
+      "x": 7,
+      "y": 35,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "MossdeepCity_Gym_EventScript_TryExit"
+    },
+    {
+      "type": "trigger",
       "x": 2,
       "y": 21,
       "elevation": 3,

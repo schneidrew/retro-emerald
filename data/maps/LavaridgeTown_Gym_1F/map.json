@@ -282,7 +282,26 @@
       "dest_warp_id": "23"
     }
   ],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 13,
+      "y": 18,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "LavaridgeTown_Gym_1F_EventScript_TryExit"
+    },
+    {
+      "type": "trigger",
+      "x": 14,
+      "y": 18,
+      "elevation": 3,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "LavaridgeTown_Gym_1F_EventScript_TryExit"
+    }
+  ],
   "bg_events": [
     {
       "type": "sign",

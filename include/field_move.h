@@ -32,6 +32,9 @@ struct FieldMoveInfo
 extern const struct FieldMoveInfo gFieldMoveInfo[];
 extern const struct FieldMoveUnlock gFieldMoveUnlocks[];
 
+bool32 FieldMove_IsHM(enum FieldMove fieldMove);
+bool32 CanUseFieldMoveInOverworld(enum FieldMove fieldMove);
+
 static inline bool32 SetUpFieldMove(enum FieldMove fieldMove)
 {
     return gFieldMoveInfo[fieldMove].fieldMoveFunc();

@@ -167,3 +167,122 @@ EventScript_SetViridianGymTrainers::
 	settrainerflag TRAINER_COOLTRAINER_YUJI
 	settrainerflag TRAINER_COOLTRAINER_WARREN
 	return
+
+Common_EventScript_CheckGymTrainersDefeated::
+	setvar VAR_RESULT, TRUE
+	switch VAR_0x8008
+	case 1, Common_EventScript_CheckRustboroGymTrainers
+	case 2, Common_EventScript_CheckDewfordGymTrainers
+	case 3, Common_EventScript_CheckMauvilleGymTrainers
+	case 4, Common_EventScript_CheckLavaridgeGymTrainers
+	case 5, Common_EventScript_CheckPetalburgGymTrainers
+	case 6, Common_EventScript_CheckFortreeGymTrainers
+	case 7, Common_EventScript_CheckMossdeepGymTrainers
+	case 8, Common_EventScript_CheckSootopolisGymTrainers
+	end
+
+Common_EventScript_CheckRustboroGymTrainers::
+	goto_if_not_defeated TRAINER_JOSH, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_TOMMY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_MARC, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckDewfordGymTrainers::
+	goto_if_not_defeated TRAINER_TAKAO, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_JOCELYN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_LAURA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BRENDEN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_CRISTIAN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_LILITH, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckMauvilleGymTrainers::
+	goto_if_not_defeated TRAINER_KIRK, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_SHAWN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BEN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_VIVIAN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_ANGELO, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckLavaridgeGymTrainers::
+	goto_if_not_defeated TRAINER_COLE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_AXLE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_KEEGAN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_GERALD, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_DANIELLE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_JACE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_JEFF, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_ELI, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckPetalburgGymTrainers::
+	goto_if_not_defeated TRAINER_RANDALL, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_PARKER, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_GEORGE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BERKE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_MARY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_ALEXIA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_JODY, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckFortreeGymTrainers::
+	goto_if_not_defeated TRAINER_JARED, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_FLINT, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_ASHLEY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_EDWARDO, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_HUMBERTO, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_DARIUS, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckMossdeepGymTrainers::
+	goto_if_not_defeated TRAINER_PRESTON, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_VIRGIL, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BLAKE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_HANNAH, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_SAMANTHA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_MAURA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_SYLVIA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_NATE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_KATHLEEN, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_CLIFFORD, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_MACEY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_NICHOLAS, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_CheckSootopolisGymTrainers::
+	goto_if_not_defeated TRAINER_ANDREA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_CRISSY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BRIANNA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_CONNIE, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BRIDGET, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_OLIVIA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_TIFFANY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_BETHANY, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_ANNIKA, Common_EventScript_GymTrainersRemain
+	goto_if_not_defeated TRAINER_DAPHNE, Common_EventScript_GymTrainersRemain
+	return
+
+Common_EventScript_GymTrainersRemain::
+	setvar VAR_RESULT, FALSE
+	return
+
+Common_EventScript_GymLeaderRequiresTrainers::
+	lock
+	faceplayer
+	msgbox Common_Text_GymLeaderRequiresTrainers, MSGBOX_DEFAULT
+	release
+	end
+
+Common_Text_GymChallengeWarning:
+	.string "Once you enter this GYM,\n"
+	.string "you can't leave until you\p"
+	.string "defeat the GYM LEADER.\n"
+	.string "Are you ready to enter?$"
+
+Common_Text_GymCannotLeave:
+	.string "You can't leave this GYM\n"
+	.string "until you defeat its LEADER!$"
+
+Common_Text_GymLeaderRequiresTrainers:
+	.string "Beat all my GYM TRAINERS\n"
+	.string "before challenging me!$"

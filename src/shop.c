@@ -83,6 +83,12 @@ enum {
 };
 
 enum {
+    PAID_SERVICE_ABILITY_CHANGER,
+    PAID_SERVICE_ABILITY_PATCHER,
+    PAID_SERVICE_MOVE_RELEARNING,
+};
+
+enum {
     WIN_MONEY,
     WIN_ITEM_LIST,
     WIN_ITEM_DESCRIPTION,
@@ -143,6 +149,8 @@ static EWRAM_DATA struct ShopData *sShopData = NULL;
 static EWRAM_DATA struct ListMenuItem *sListMenuItems = NULL;
 static EWRAM_DATA u8 (*sItemNames)[ITEM_NAME_LENGTH + 2] = {0};
 static EWRAM_DATA u8 sPurchaseHistoryId = 0;
+static u8 sPendingPaidService;
+static u8 sPendingHeartScaleCost;
 EWRAM_DATA struct ItemSlot gMartPurchaseHistory[SMARTSHOPPER_NUM_ITEMS] = {0};
 
 static void Task_ShopMenu(u8 taskId);
@@ -192,8 +200,14 @@ static void Task_HandleShopMenuServices(u8 taskId);
 static void Task_HandleShopMenuApplyStatus(u8 taskId);
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, struct ListMenu *list);
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
+static u32 GetShopItemPrice(enum Item item);
 static void Task_ReturnToServicesMainMenu(u8 taskId);
 static void Task_ReturnToServicesMenu(u8 taskId);
+static void Task_ReturnToServicesMenuAfterMessage(u8 taskId);
+static void Task_ShowServiceCostConfirmation(u8 taskId);
+static void Task_HandleServiceCostConfirmation(u8 taskId);
+static void BeginPaidServiceConfirmation(u8 taskId, u8 service, u8 cost);
+static void StartPaidService(u8 taskId);
 static void Task_StartShopService(u8 taskId);
 static void Task_StartAbilityChanger(u8 taskId);
 static void Task_StartAbilityPatcher(u8 taskId);
@@ -205,6 +219,7 @@ static void Task_StartBurnService(u8 taskId);
 static void Task_StartFreezeService(u8 taskId);
 static void Task_StartParalysisService(u8 taskId);
 static void Task_StartSleepService(u8 taskId);
+static bool8 CheckServiceHeartScaleCost(u8 taskId, u8 cost);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 {
@@ -222,11 +237,11 @@ static const struct MenuAction sShopMenuActions_BuySellServicesQuit[] =
 
 static const struct MenuAction sShopServicesMenuActions[] =
 {
-    { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
-    { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
-    { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
     { gText_ShopSetHP, {.void_u8=Task_StartPreDamage} },
     { gText_ShopApplyStatus, {.void_u8=Task_HandleShopMenuApplyStatus} },
+    { gText_ShopMoveRelearning, {.void_u8=Task_StartMoveRelearning} },
+    { gText_ShopAbilityChanger, {.void_u8=Task_StartAbilityChanger} },
+    { gText_ShopAbilityPatcher, {.void_u8=Task_StartAbilityPatcher} },
     { gText_ShopQuit, {.void_u8=Task_ReturnToServicesMainMenu} },
 };
 
@@ -599,8 +614,11 @@ static void Task_ReturnToServicesMenu(u8 taskId)
     struct WindowTemplate window = sShopServicesMenuWindowTemplate;
 
     (void)taskId;
-    ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
-    RemoveWindow(sMartInfo.windowId);
+    if (sMartInfo.windowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+        RemoveWindow(sMartInfo.windowId);
+    }
     window.width = GetMaxWidthInMenuTable(sShopServicesMenuActions, ARRAY_COUNT(sShopServicesMenuActions));
     sMartInfo.windowId = AddWindow(&window);
     sMartInfo.menuState = SHOP_MENU_SERVICES;
@@ -612,29 +630,107 @@ static void Task_ReturnToServicesMenu(u8 taskId)
     CopyWindowToVram(sMartInfo.windowId, COPYWIN_MAP);
 }
 
+static void Task_ReturnToServicesMenuAfterMessage(u8 taskId)
+{
+    ClearDialogWindowAndFrameToTransparent(0, TRUE);
+    Task_ReturnToServicesMenu(taskId);
+    gTasks[taskId].func = Task_ShopMenu;
+}
+
+static bool8 CheckServiceHeartScaleCost(u8 taskId, u8 cost)
+{
+    if (CheckBagHasItem(ITEM_HEART_SCALE, cost))
+        return TRUE;
+
+    PlaySE(SE_SELECT);
+    if (sMartInfo.windowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+        RemoveWindow(sMartInfo.windowId);
+    }
+    sMartInfo.windowId = WINDOW_NONE;
+    DisplayItemMessageOnField(taskId, gText_NotEnoughHeartScales, Task_ReturnToServicesMenuAfterMessage);
+    return FALSE;
+}
+
+static void BeginPaidServiceConfirmation(u8 taskId, u8 service, u8 cost)
+{
+    sPendingPaidService = service;
+    sPendingHeartScaleCost = cost;
+    if (sMartInfo.windowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+        RemoveWindow(sMartInfo.windowId);
+        sMartInfo.windowId = WINDOW_NONE;
+    }
+    DisplayItemMessageOnField(taskId, cost == 1 ? gText_ServiceCostOneHeartScale : gText_ServiceCostTwoHeartScales, Task_ShowServiceCostConfirmation);
+}
+
+static void Task_ShowServiceCostConfirmation(u8 taskId)
+{
+    DisplayYesNoMenuDefaultYes();
+    gTasks[taskId].func = Task_HandleServiceCostConfirmation;
+}
+
+static void Task_HandleServiceCostConfirmation(u8 taskId)
+{
+    switch (Menu_ProcessInputNoWrapClearOnChoose())
+    {
+    case 0:
+        if (CheckServiceHeartScaleCost(taskId, sPendingHeartScaleCost))
+            StartPaidService(taskId);
+        break;
+    case 1:
+    case MENU_B_PRESSED:
+        PlaySE(SE_SELECT);
+        Task_ReturnToServicesMenuAfterMessage(taskId);
+        break;
+    }
+}
+
+static void StartPaidService(u8 taskId)
+{
+    switch (sPendingPaidService)
+    {
+    case PAID_SERVICE_ABILITY_CHANGER:
+        Task_StartShopService(taskId);
+        UseAbilityCapsuleService();
+        break;
+    case PAID_SERVICE_ABILITY_PATCHER:
+        Task_StartShopService(taskId);
+        UseAbilityPatchService();
+        break;
+    case PAID_SERVICE_MOVE_RELEARNING:
+        Task_StartShopService(taskId);
+        ChooseMonForMoveRelearnerService();
+        break;
+    }
+}
+
 static void Task_StartShopService(u8 taskId)
 {
-    ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
-    RemoveWindow(sMartInfo.windowId);
+    if (sMartInfo.windowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrame(sMartInfo.windowId, FALSE);
+        RemoveWindow(sMartInfo.windowId);
+        sMartInfo.windowId = WINDOW_NONE;
+    }
     DestroyTask(taskId);
 }
 
 static void Task_StartAbilityChanger(u8 taskId)
 {
-    Task_StartShopService(taskId);
-    UseAbilityCapsuleService();
+    BeginPaidServiceConfirmation(taskId, PAID_SERVICE_ABILITY_CHANGER, 1);
 }
 
 static void Task_StartAbilityPatcher(u8 taskId)
 {
-    Task_StartShopService(taskId);
-    UseAbilityPatchService();
+    BeginPaidServiceConfirmation(taskId, PAID_SERVICE_ABILITY_PATCHER, 2);
 }
 
 static void Task_StartMoveRelearning(u8 taskId)
 {
-    Task_StartShopService(taskId);
-    ChooseMonForMoveRelearnerService();
+    BeginPaidServiceConfirmation(taskId, PAID_SERVICE_MOVE_RELEARNING, 1);
 }
 
 static void Task_StartPreDamage(u8 taskId)
@@ -906,10 +1002,11 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
         {
             ConvertIntToDecimalStringN(
                 gStringVar1,
-                GetItemPrice(itemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT),
+                GetShopItemPrice(itemId),
                 STR_CONV_MODE_LEFT_ALIGN,
                 6);
         }
+
         else
         {
             ConvertIntToDecimalStringN(
@@ -926,6 +1023,16 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
         x = GetStringRightAlignXOffset(FONT_NARROW, gStringVar4, 120);
         AddTextPrinterParameterized4(windowId, FONT_NARROW, x, y, 0, 0, sShopBuyMenuTextColors[COLORID_ITEM_LIST], TEXT_SKIP_DRAW, gStringVar4);
     }
+}
+
+static u32 GetShopItemPrice(enum Item item)
+{
+    if (item == ITEM_HEART_SCALE
+     && gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(MAP_RUSTBORO_CITY_MART)
+     && gSaveBlock1Ptr->location.mapNum == MAP_NUM(MAP_RUSTBORO_CITY_MART))
+        return 1;
+
+    return GetItemPrice(item) >> IsPokeNewsActive(POKENEWS_SLATEPORT);
 }
 
 static void BuyMenuAddScrollIndicatorArrows(void)
@@ -1279,7 +1386,7 @@ static void Task_BuyMenu(u8 taskId)
             BuyMenuPrintCursor(tListTaskId, COLORID_GRAY_CURSOR);
 
             if (sMartInfo.martType == MART_TYPE_NORMAL)
-                sShopData->totalCost = (GetItemPrice(itemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT));
+                sShopData->totalCost = GetShopItemPrice(itemId);
             else
                 sShopData->totalCost = gDecorations[itemId].price;
 
@@ -1299,7 +1406,7 @@ static void Task_BuyMenu(u8 taskId)
                         ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
                         StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2);
                         tItemCount = 1;
-                        sShopData->totalCost = (GetItemPrice(tItemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT)) * tItemCount;
+                        sShopData->totalCost = GetShopItemPrice(tItemId) * tItemCount;
                         BuyMenuDisplayMessage(taskId, gStringVar4, BuyMenuConfirmPurchase);
                     }
                     else if (GetItemPocket(itemId) == POCKET_TM_HM)
@@ -1366,7 +1473,7 @@ static void Task_BuyHowManyDialogueHandleInput(u8 taskId)
 
     if (AdjustQuantityAccordingToDPadInput(&tItemCount, sShopData->maxQuantity) == TRUE)
     {
-        sShopData->totalCost = (GetItemPrice(tItemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT)) * tItemCount;
+        sShopData->totalCost = GetShopItemPrice(tItemId) * tItemCount;
         BuyMenuPrintItemQuantityAndPrice(taskId);
     }
     else

@@ -83,6 +83,7 @@ static EWRAM_DATA struct {
 EWRAM_DATA enum MoveRelearnerStates gMoveRelearnerState = MOVE_RELEARNER_LEVEL_UP_MOVES;
 EWRAM_DATA enum RelearnMode gRelearnMode = RELEARN_MODE_NONE;
 static bool8 sReturnToPokemartAfterMoveRelearner;
+static bool8 sChargeHeartScaleAfterMoveRelearner;
 
 static const u16 sUI_Pal[] = INCGFX_U16("graphics/interface/ui_learn_move.png", ".gbapal");
 
@@ -316,6 +317,7 @@ static void VBlankCB_MoveRelearner(void)
 static void StartTeachMoveRelearnerMove(bool8 returnToPokemart)
 {
     sReturnToPokemartAfterMoveRelearner = returnToPokemart;
+    sChargeHeartScaleAfterMoveRelearner = returnToPokemart;
     LockPlayerFieldControls();
     CreateTask(Task_WaitForFadeOut, 10);
     gRelearnMode = RELEARN_MODE_SCRIPT;
@@ -555,6 +557,11 @@ static void UIEndTask(u8 taskId)
         if (!GetItemImportance(item))
             RemoveBagItem(item, 1);
     }
+    if (gSpecialVar_Result == TRUE && sChargeHeartScaleAfterMoveRelearner)
+    {
+        RemoveBagItem(ITEM_HEART_SCALE, 1);
+        sChargeHeartScaleAfterMoveRelearner = FALSE;
+    }
     if (gRelearnMode == RELEARN_MODE_SCRIPT && gSpecialVar_Result == TRUE)
     {
         gTasks[taskId].func = Task_MoveRelearner_Quit;
@@ -598,6 +605,7 @@ static void Task_MoveRelearner_Quit(u8 taskId)
 
     FreeMoveRelearnerResources();
     gRelearnMode = RELEARN_MODE_NONE;
+    sChargeHeartScaleAfterMoveRelearner = FALSE;
     DestroyTask(taskId);
 }
 

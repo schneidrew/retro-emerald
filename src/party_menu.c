@@ -221,6 +221,7 @@ static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
 static EWRAM_DATA enum Item sPartyMenuItemId = 0;
 static bool8 sAbilityService;
+static u8 sAbilityServiceHeartScaleCost;
 static u32 sStatusServiceStatus;
 static u8 sPreDamageWindowId;
 static u8 sPreDamageMonId;
@@ -5062,7 +5063,9 @@ void Task_AbilityCapsule(u8 taskId)
         break;
     case 5:
         SetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_ABILITY_NUM, &tAbilityNum);
-        if (!sAbilityService)
+        if (sAbilityService)
+            RemoveBagItem(ITEM_HEART_SCALE, sAbilityServiceHeartScaleCost);
+        else
             RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
@@ -5148,7 +5151,9 @@ void Task_AbilityPatch(u8 taskId)
         break;
     case 5:
         SetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_ABILITY_NUM, &tAbilityNum);
-        if (!sAbilityService)
+        if (sAbilityService)
+            RemoveBagItem(ITEM_HEART_SCALE, sAbilityServiceHeartScaleCost);
+        else
             RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
@@ -8279,7 +8284,7 @@ static void ItemUseCB_StatusService(u8 taskId, TaskFunc task)
 
     (void)task;
 
-    if (GetMonData(mon, MON_DATA_HP) == 0 || GetMonData(mon, MON_DATA_STATUS) != STATUS1_NONE)
+    if (GetMonData(mon, MON_DATA_HP) == 0)
     {
         gPartyMenuUseExitCallback = FALSE;
         PlaySE(SE_SELECT);
@@ -8458,9 +8463,10 @@ static void ClosePreDamageInputWindow(u8 taskId)
     DestroyTask(taskId);
 }
 
-static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc))
+static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc), u8 heartScaleCost)
 {
     sAbilityService = TRUE;
+    sAbilityServiceHeartScaleCost = heartScaleCost;
     gItemUseCB = itemUseCallback;
     LockPlayerFieldControls();
     FadeScreen(FADE_TO_BLACK, 0);
@@ -8469,12 +8475,12 @@ static void StartAbilityService(void (*itemUseCallback)(u8, TaskFunc))
 
 void UseAbilityCapsuleService(void)
 {
-    StartAbilityService(ItemUseCB_AbilityCapsule);
+    StartAbilityService(ItemUseCB_AbilityCapsule, 1);
 }
 
 void UseAbilityPatchService(void)
 {
-    StartAbilityService(ItemUseCB_AbilityPatch);
+    StartAbilityService(ItemUseCB_AbilityPatch, 2);
 }
 
 static void Task_UseAbilityService(u8 taskId)
@@ -8491,6 +8497,7 @@ static void Task_UseAbilityService(u8 taskId)
 static bool8 CB2_FadeFromPartyMenuAfterAbilityService(void)
 {
     sAbilityService = FALSE;
+    sAbilityServiceHeartScaleCost = 0;
     return CB2_ReturnToPokemartAfterService();
 }
 

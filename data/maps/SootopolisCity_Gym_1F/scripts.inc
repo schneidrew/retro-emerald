@@ -5,7 +5,29 @@ SootopolisCity_Gym_1F_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, SootopolisCity_Gym_1F_OnTransition
 	.byte 0
 
+SootopolisCity_Gym_1F_EventScript_TryExit::
+	lockall
+	goto_if_unset FLAG_DEFEATED_SOOTOPOLIS_GYM, SootopolisCity_Gym_1F_EventScript_ExitBlocked
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	warp MAP_SOOTOPOLIS_CITY, 31, 33
+	waitstate
+	end
+
+SootopolisCity_Gym_1F_EventScript_ExitBlocked::
+	msgbox Common_Text_GymCannotLeave, MSGBOX_DEFAULT
+	applymovement LOCALID_PLAYER, Common_Movement_WalkUp
+	waitmovement 0
+	releaseall
+	end
+
 SootopolisCity_Gym_1F_OnTransition:
+	goto_if_set FLAG_DEFEATED_SOOTOPOLIS_GYM, SootopolisCity_Gym_1F_EventScript_ClearChallengeLock
+	setvar VAR_GYM_CHALLENGE_LOCK, 1
+	goto SootopolisCity_Gym_1F_EventScript_ContinueOnTransition
+
+SootopolisCity_Gym_1F_EventScript_ClearChallengeLock:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+SootopolisCity_Gym_1F_EventScript_ContinueOnTransition:
 	setvar VAR_ICE_STEP_COUNT, 1
 	end
 
@@ -80,6 +102,11 @@ SootopolisCity_Gym_1F_Movement_FallThroughIce:
 	step_end
 
 SootopolisCity_Gym_1F_EventScript_Juan::
+	goto_if_set FLAG_DEFEATED_SOOTOPOLIS_GYM, SootopolisCity_Gym_1F_EventScript_BattleJuan
+	setvar VAR_0x8008, 8
+	call Common_EventScript_CheckGymTrainersDefeated
+	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymLeaderRequiresTrainers
+SootopolisCity_Gym_1F_EventScript_BattleJuan::
 	trainerbattle_single TRAINER_JUAN_1, SootopolisCity_Gym_1F_Text_JuanIntro, SootopolisCity_Gym_1F_Text_JuanDefeat, SootopolisCity_Gym_1F_EventScript_JuanDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, SootopolisCity_Gym_1F_EventScript_JuanRematch
@@ -316,4 +343,3 @@ SootopolisCity_Gym_1F_Text_JuanRematchNeedTwoMons:
 	.string "You have with you but one POKéMON.\p"
 	.string "I wish that you would return with\n"
 	.string "two, perhaps more, POKéMON, please.$"
-

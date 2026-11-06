@@ -136,7 +136,26 @@
       "dest_warp_id": "2"
     }
   ],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 5,
+      "y": 27,
+      "elevation": 0,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "DewfordTown_Gym_EventScript_TryExit"
+    },
+    {
+      "type": "trigger",
+      "x": 6,
+      "y": 27,
+      "elevation": 0,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "1",
+      "script": "DewfordTown_Gym_EventScript_TryExit"
+    }
+  ],
   "bg_events": [
     {
       "type": "sign",

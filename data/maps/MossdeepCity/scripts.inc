@@ -2,7 +2,25 @@ MossdeepCity_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, MossdeepCity_OnTransition
 	.byte 0
 
+MossdeepCity_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_MOSSDEEP_GYM, MossdeepCity_EventScript_AllowEntry
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, MossdeepCity_EventScript_DeclineGymChallenge
+MossdeepCity_EventScript_AllowEntry::
+	releaseall
+	end
+
+MossdeepCity_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 MossdeepCity_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	clearflag FLAG_MOSSDEEP_GYM_SWITCH_1
 	clearflag FLAG_MOSSDEEP_GYM_SWITCH_2
 	clearflag FLAG_MOSSDEEP_GYM_SWITCH_3
@@ -425,4 +443,3 @@ MossdeepCity_Text_SootopolisNewGymLeader:
 	.string "LEADER come in.\p"
 	.string "People tell me the new LEADER once\n"
 	.string "mentored WALLACE.$"
-

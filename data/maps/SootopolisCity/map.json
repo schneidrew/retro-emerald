@@ -360,7 +360,17 @@
       "dest_warp_id": "0"
     }
   ],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 31,
+      "y": 33,
+      "elevation": 0,
+      "var": "VAR_GYM_CHALLENGE_LOCK",
+      "var_value": "0",
+      "script": "SootopolisCity_EventScript_GymEntrance"
+    }
+  ],
   "bg_events": [
     {
       "type": "sign",

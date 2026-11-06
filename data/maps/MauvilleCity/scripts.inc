@@ -2,7 +2,25 @@ MauvilleCity_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, MauvilleCity_OnTransition
 	.byte 0
 
+MauvilleCity_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_MAUVILLE_GYM, MauvilleCity_EventScript_AllowEntry
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_EventScript_DeclineGymChallenge
+MauvilleCity_EventScript_AllowEntry::
+	releaseall
+	end
+
+MauvilleCity_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 MauvilleCity_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	setflag FLAG_VISITED_MAUVILLE_CITY
 	clearflag FLAG_FORCE_MIRAGE_TOWER_VISIBLE
 	clearflag FLAG_HIDE_SLATEPORT_MUSEUM_POPULATION

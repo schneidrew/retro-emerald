@@ -3,7 +3,25 @@ LavaridgeTown_MapScripts::
 	map_script MAP_SCRIPT_ON_FRAME_TABLE, LavaridgeTown_OnFrame
 	.byte 0
 
+LavaridgeTown_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_LAVARIDGE_GYM, LavaridgeTown_EventScript_AllowEntry
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, LavaridgeTown_EventScript_DeclineGymChallenge
+LavaridgeTown_EventScript_AllowEntry::
+	releaseall
+	end
+
+LavaridgeTown_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 LavaridgeTown_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	setflag FLAG_VISITED_LAVARIDGE_TOWN
 	call_if_set FLAG_WHITEOUT_TO_LAVARIDGE, LavaridgeTown_EventScript_ClearLavaridgeWhiteOut
 	call_if_set FLAG_DEFEATED_EVIL_TEAM_MT_CHIMNEY, LavaridgeTown_EventScript_ShowMtChimneyTrainers
@@ -403,4 +421,3 @@ LavaridgeTown_Text_GymSign:
 LavaridgeTown_Text_HerbShopSign:
 	.string "POKéMON HERB SHOP\n"
 	.string "“Bitter taste--better cure!”$"
-

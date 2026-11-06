@@ -2,7 +2,25 @@ DewfordTown_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, DewfordTown_OnTransition
 	.byte 0
 
+DewfordTown_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_DEWFORD_GYM, DewfordTown_EventScript_AllowEntry
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, DewfordTown_EventScript_DeclineGymChallenge
+DewfordTown_EventScript_AllowEntry::
+	releaseall
+	end
+
+DewfordTown_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 DewfordTown_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	setflag FLAG_VISITED_DEWFORD_TOWN
 	end
 

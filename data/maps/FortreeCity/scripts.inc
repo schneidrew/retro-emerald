@@ -3,7 +3,25 @@ FortreeCity_MapScripts::
 	map_script MAP_SCRIPT_ON_RESUME, FortreeCity_OnResume
 	.byte 0
 
+FortreeCity_EventScript_GymEntrance::
+	lockall
+	goto_if_set FLAG_DEFEATED_FORTREE_GYM, FortreeCity_EventScript_AllowEntry
+	turnobject LOCALID_PLAYER, DIR_NORTH
+	msgbox Common_Text_GymChallengeWarning, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, FortreeCity_EventScript_DeclineGymChallenge
+FortreeCity_EventScript_AllowEntry::
+	releaseall
+	end
+
+FortreeCity_EventScript_DeclineGymChallenge::
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkDown
+	waitmovement 0
+	releaseall
+	end
+
 FortreeCity_OnTransition:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
 	setflag FLAG_VISITED_FORTREE_CITY
 	end
 
@@ -153,4 +171,3 @@ FortreeCity_Text_GymSign:
 	.string "LEADER: WINONA\p"
 	.string "“The bird user taking flight into\n"
 	.string "the world.”$"
-

@@ -3,7 +3,29 @@ FortreeCity_Gym_MapScripts::
 	map_script MAP_SCRIPT_ON_WARP_INTO_MAP_TABLE, FortreeCity_Gym_OnWarp
 	.byte 0
 
+FortreeCity_Gym_EventScript_TryExit::
+	lockall
+	goto_if_unset FLAG_DEFEATED_FORTREE_GYM, FortreeCity_Gym_EventScript_ExitBlocked
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+	warp MAP_FORTREE_CITY, 22, 12
+	waitstate
+	end
+
+FortreeCity_Gym_EventScript_ExitBlocked::
+	msgbox Common_Text_GymCannotLeave, MSGBOX_DEFAULT
+	applymovement LOCALID_PLAYER, Common_Movement_WalkUp
+	waitmovement 0
+	releaseall
+	end
+
 FortreeCity_Gym_OnTransition:
+	goto_if_set FLAG_DEFEATED_FORTREE_GYM, FortreeCity_Gym_EventScript_ClearChallengeLock
+	setvar VAR_GYM_CHALLENGE_LOCK, 1
+	goto FortreeCity_Gym_EventScript_ContinueOnTransition
+
+FortreeCity_Gym_EventScript_ClearChallengeLock:
+	setvar VAR_GYM_CHALLENGE_LOCK, 0
+FortreeCity_Gym_EventScript_ContinueOnTransition:
 	special RotatingGate_InitPuzzle
 	setflag FLAG_TEMP_HIDE_FOLLOWER @ Hide follower bc of rotating gates
 	end
@@ -18,6 +40,11 @@ FortreeCity_Gym_EventScript_InitRotatingGates::
 	end
 
 FortreeCity_Gym_EventScript_Winona::
+	goto_if_set FLAG_DEFEATED_FORTREE_GYM, FortreeCity_Gym_EventScript_BattleWinona
+	setvar VAR_0x8008, 6
+	call Common_EventScript_CheckGymTrainersDefeated
+	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymLeaderRequiresTrainers
+FortreeCity_Gym_EventScript_BattleWinona::
 	trainerbattle_single TRAINER_WINONA_1, FortreeCity_Gym_Text_WinonaIntro, FortreeCity_Gym_Text_WinonaDefeat, FortreeCity_Gym_EventScript_WinonaDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, FortreeCity_Gym_EventScript_WinonaRematch
